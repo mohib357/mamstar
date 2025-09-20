@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAM STAR - গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <div class="logo_container">
+                    <img src="images/logo2.png" alt="MAM STAR Logo">
+                </div>
+                <div>
+                    <h1>MAM STAR</h1>
+                    <div class="tagline">গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</div>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">হোম</a></li>
+                    <li><a href="#products">পণ্য</a></li>
+                    <li><a href="#about">আমাদের সম্পর্কে</a></li>
+                    <li><a href="#contact">যোগাযোগ</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+                <div class="admin-icon" id="adminIcon">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h2>MAM STAR এ স্বাগতম</h2>
+            <p>আধুনিক চশমা, ঘড়ি এবং বোরকার সম্ভার - গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</p>
+            <a href="#products" class="cta-btn">পণ্য দেখুন</a>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
+        <div class="container">
+            <div class="section-title">
+                <h2>আমাদের পণ্যসমূহ</h2>
+            </div>
+
+            <div class="product-grid" id="productGrid">
+                <!-- Products will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-actions">
+            <h2>অ্যাডমিন প্যানেল</h2>
+            <button class="logout-btn" id="logoutBtn">লগআউট</button>
+        </div>
+
+        <div class="admin-tabs">
+            <div class="admin-tab active" data-tab="products">পণ্য যোগ করুন</div>
+            <div class="admin-tab" data-tab="product-list">পণ্য তালিকা</div>
+            <div class="admin-tab" data-tab="orders">অর্ডার ব্যবস্থাপনা</div>
+        </div>
+
+        <!-- Add Product Tab -->
+        <div class="admin-tab-content active" id="products-tab">
+            <form id="productForm">
+                <input type="hidden" id="productId" value="">
+
+                <div class="form-group">
+                    <label for="productName">পণ্যের নাম</label>
+                    <input type="text" class="form-control" id="productName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="productCategory">ক্যাটাগরি</label>
+                    <select class="form-control" id="productCategory" required>
+                        <option value="">ক্যাটাগরি নির্বাচন করুন</option>
+                        <option value="চশমা">চশমা</option>
+                        <option value="ঘড়ি">ঘড়ি</option>
+                        <option value="বোরকা">বোরকা</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">মূল্য (৳)</label>
+                    <input type="number" class="form-control" id="productPrice" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="productOldPrice">পুরনো মূল্য (৳) (ঐচ্ছিক)</label>
+                    <input type="number" class="form-control" id="productOldPrice">
+                </div>
+
+                <div class="form-group">
+                    <label for="productDiscount">ছাড় (%) (ঐচ্ছিক)</label>
+                    <input type="number" class="form-control" id="productDiscount" min="0" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="productStock">স্টক সংখ্যা</label>
+                    <input type="number" class="form-control" id="productStock" min="0" required>
+                </div>
+
+                <div class="media-upload-section">
+                    <h4>ছবি যোগ করুন</h4>
+                    <div id="imageUploads">
+                        <div class="media-item">
+                            <div class="media-type-tabs">
+                                <div class="media-type-tab active" data-type="file">ফাইল আপলোড</div>
+                                <div class="media-type-tab" data-type="url">ইউআরএল</div>
+                            </div>
+                            <div class="media-type-content active" data-type="file">
+                                <input type="file" class="form-control" accept="image/*" onchange="previewImage(this)">
+                            </div>
+                            <div class="media-type-content" data-type="url">
+                                <div class="url-input-group">
+                                    <input type="text" class="form-control" placeholder="ছবির ইউআরএল লিখুন"
+                                        onchange="previewUrlImage(this)">
+                                    <button type="button" onclick="addImageUrl(this)">যোগ করুন</button>
+                                </div>
+                            </div>
+                            <img class="media-preview" style="display: none;">
+                            <button type="button" class="remove-media">সরান</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-info" id="addImageBtn">আরও ছবি যোগ করুন</button>
+                </div>
+
+                <div class="media-upload-section">
+                    <h4>ভিডিও যোগ করুন</h4>
+                    <div id="videoUploads">
+                        <div class="media-item">
+                            <div class="media-type-tabs">
+                                <div class="media-type-tab active" data-type="file">ফাইল আপলোড</div>
+                                <div class="media-type-tab" data-type="url">ইউআরএল</div>
+                            </div>
+                            <div class="media-type-content active" data-type="file">
+                                <input type="file" class="form-control" accept="video/*" onchange="previewVideo(this)">
+                            </div>
+                            <div class="media-type-content" data-type="url">
+                                <div class="url-input-group">
+                                    <input type="text" class="form-control" placeholder="ভিডিওর ইউআরএল লিখুন"
+                                        onchange="previewUrlVideo(this)">
+                                    <button type="button" onclick="addVideoUrl(this)">যোগ করুন</button>
+                                </div>
+                            </div>
+                            <button type="button" class="remove-media">সরান</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-info" id="addVideoBtn">আরও ভিডিও যোগ করুন</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="productDescription">বর্ণনা</label>
+                    <textarea class="form-control" id="productDescription" rows="4" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitProductBtn">পণ্য যোগ করুন</button>
+                <button type="button" class="btn-danger" id="cancelBtn">বাতিল</button>
+            </form>
+        </div>
+
+        <!-- Product List Tab -->
+        <div class="admin-tab-content" id="product-list-tab">
+            <h3>পণ্য তালিকা</h3>
+            <table class="product-list">
+                <thead>
+                    <tr>
+                        <th>ছবি</th>
+                        <th>নাম</th>
+                        <th>ক্যাটাগরি</th>
+                        <th>মূল্য</th>
+                        <th>স্টক</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="productListBody">
+                    <!-- Products will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Orders Tab -->
+        <div class="admin-tab-content" id="orders-tab">
+            <h3>অর্ডার তালিকা</h3>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>অর্ডার ID</th>
+                        <th>গ্রাহক</th>
+                        <th>মোট মূল্য</th>
+                        <th>তারিখ</th>
+                        <th>স্ট্যাটাস</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <!-- Orders will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="modal product-detail-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeProductModal">&times;</span>
+            <div class="product-detail-container" id="productDetailContainer">
+                <!-- Product details will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeCartModal">&times;</span>
+            <h2>আপনার কার্ট</h2>
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items will be dynamically added here -->
+            </div>
+            <div class="cart-summary">
+                <div class="cart-total">
+                    <span>মোট:</span>
+                    <span id="cartTotal">৳0</span>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn">চেকআউট করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeCheckoutModal">&times;</span>
+            <h2>চেকআউট</h2>
+
+            <div class="order-summary" id="orderSummary">
+                <h3>অর্ডার সারাংশ</h3>
+                <!-- Order summary will be dynamically added here -->
+            </div>
+
+            <form class="checkout-form" id="checkoutForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">নামের প্রথম অংশ</label>
+                        <input type="text" class="form-control" id="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">নামের শেষ অংশ</label>
+                        <input type="text" class="form-control" id="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">ইমেল</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">ফোন নম্বর</label>
+                    <input type="tel" class="form-control" id="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">ঠিকানা</label>
+                    <textarea class="form-control" id="address" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">পেমেন্ট পদ্ধতি</label>
+                    <select class="form-control" id="paymentMethod" required>
+                        <option value="">পেমেন্ট পদ্ধতি নির্বাচন করুন</option>
+                        <option value="cash">ক্যাশ অন ডেলিভারি</option>
+                        <option value="bkash">বিকাশ</option>
+                        <option value="nagad">নগদ</option>
+                        <option value="card">ক্রেডিট/ডেবিট কার্ড</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">অর্ডার সম্পন্ন করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="orderDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeOrderDetailModal">&times;</span>
+            <h2>অর্ডার বিস্তারিত</h2>
+
+            <div class="order-detail-container" id="orderDetailContainer">
+                <!-- Order details will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div id="orderConfirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeOrderConfirmationModal">&times;</span>
+            <div class="order-confirmation">
+                <i class="fas fa-check-circle"></i>
+                <h2>অর্ডার সফল!</h2>
+                <p>আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।</p>
+                <button class="btn-primary" id="continueShoppingBtn">কেনাকাটা চালিয়ে যান</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal admin-login-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAdminLoginModal">&times;</span>
+            <div class="admin-login-form">
+                <h3>অ্যাডমিন লগইন</h3>
+                <div class="password-input-group">
+                    <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড লিখুন">
+                    <span class="password-toggle" id="passwordToggle">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+                <button class="btn-primary" id="adminLoginBtn">লগইন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>MAM STAR</h3>
+                    <p>গুণমানে উজ্জ্বল, বিশ্বাসে অটুট - আমরা আপনার জন্য সেরা পণ্য নিয়ে এসেছি।</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/mamstar.com.bd/" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h3>দ্রুত লিংক</h3>
+                    <ul>
+                        <li><a href="#home">হোম</a></li>
+                        <li><a href="#products">পণ্য</a></li>
+                        <li><a href="#about">আমাদের সম্পর্কে</a></li>
+                        <li><a href="#contact">যোগাযোগ</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h3>যোগাযোগ তথ্য</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> মিরপুর ১০, ঢাকা, বাংলাদেশ</p>
+                    <p><i class="fas fa-phone"></i> +৮৮০১৭১৭২৬৭০০৫</p>
+                    <p><i class="fas fa-envelope"></i> mamstarbd@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="copyright">
+                <a href="../Privacy-Policy/privacy.html" class="privacy-link" target="_blank" rel="noopener noreferrer">
+                    Privacy Policy
+                </a>
+                <p>&copy; ২০২৩ MAM STAR. সর্বস্বত্ব সংরক্ষিত।</p>
+            </div>
+
+        </div>
+    </footer>
+    <script src="main.js"></script>
+</body>
+
+</html>
