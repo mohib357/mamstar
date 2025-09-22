@@ -1,7 +1,7 @@
 {
     "name": "mamstar",
     "version": "1.0.0",
-    "description": "E-commerce website for Mamstar",
+    "description": "E-commerce website for Mamstar - গুণমানে উজ্জ্বল, বিশ্বাসে অটুট",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
@@ -13,5 +13,28 @@
     },
     "devDependencies": {
         "nodemon": "^3.1.10"
+    },
+    "keywords": [
+        "ecommerce",
+        "bangladesh",
+        "glasses",
+        "watches",
+        "hijab",
+        "express",
+        "nodejs"
+    ],
+    "author": {
+        "name": "MAM STAR",
+        "email": "mamstarbd@gmail.com",
+        "url": "https://mohib357.github.io/mamstar/"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mohib357/mamstar"
+    },
+    "license": "MIT",
+    "engines": {
+        "node": ">=14.0.0",
+        "npm": ">=6.0.0"
     }
 }
