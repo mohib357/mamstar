@@ -9,8 +9,8 @@ function isYouTubeUrl(url) {
 // Get YouTube embed URL from a YouTube URL
 function getYouTubeEmbedUrl(url) {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)[1];
-    // Add parameters to hide YouTube branding and related videos
-    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&modestbranding=1&rel=0&showinfo=0&controls=1&iv_load_policy=3&cc_load_policy=0`;
+    // Add parameters to hide YouTube branding, related videos, and enable looping
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&modestbranding=1&rel=0&showinfo=0&controls=1&iv_load_policy=3&cc_load_policy=0&loop=1&playlist=${videoId}`;
 }
 
 // Sample initial products
@@ -705,6 +705,9 @@ function changeMedia(index) {
                 // Play the video
                 iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 playButton.style.display = 'none';
+
+                // Ensure looping is enabled
+                iframe.contentWindow.postMessage('{"event":"command","func":"setLoop","args":[true]}', '*');
             });
 
             // Add a custom sound indicator
@@ -760,8 +763,8 @@ function changeMedia(index) {
                 if (event.data && event.data.event === 'infoDelivery') {
                     const info = event.data.info;
                     if (info && info.playerState === 0) { // Video ended
-                        // Show play button again
-                        playButton.style.display = 'flex';
+                        // Restart the video instead of showing related videos
+                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                     }
                 }
             });
@@ -773,7 +776,7 @@ function changeMedia(index) {
             mainVideo.id = 'mainVideo';
             mainVideo.controls = true;
             mainVideo.autoplay = false; // Don't autoplay initially
-            mainVideo.loop = false; // Don't loop by default
+            mainVideo.loop = true; // Don't loop by default
             mainVideo.muted = false; // Sound is on by default
             mainVideo.volume = 1.0; // Set volume to maximum
             mainImageContainer.appendChild(mainVideo);
@@ -810,10 +813,12 @@ function changeMedia(index) {
 
             mainImageContainer.appendChild(soundIndicator);
 
+
             // Add event listener for video end
             mainVideo.addEventListener('ended', function () {
-                // Reset to beginning
+                // Reset to beginning and play again
                 this.currentTime = 0;
+                this.play();
             });
         }
     }
