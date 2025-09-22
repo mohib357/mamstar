@@ -1,3 +1,5 @@
+<!-- C:\Project\mamstar\index.html -->
+
 <!DOCTYPE html>
 <html lang="bn" dir="ltr">
 
@@ -10,20 +12,38 @@
     <!-- ===== PRELOAD CRITICAL RESOURCES ===== -->
     <link rel="preload" href="images/logo2.png" as="image">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    <link rel="preload" href="css/style.css" as="style">
 
     <!-- ===== EXTERNAL DEPENDENCIES ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- ===== MODULAR CSS SYSTEM ===== -->
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="components.css">
-    <link rel="stylesheet" href="layout.css">
-    <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="modals.css">
-    <link rel="stylesheet" href="responsive.css">
+    <!-- ===== MODULAR CSS SYSTEM (Optimized Order) ===== -->
+    <link rel="stylesheet" href="css/style.css"> <!-- Base styles & variables -->
+    <link rel="stylesheet" href="css/components.css"> <!-- Reusable components -->
+    <link rel="stylesheet" href="css/layout.css"> <!-- Layout sections -->
+    <link rel="stylesheet" href="css/modals.css"> <!-- Modal windows -->
+    <link rel="stylesheet" href="css/admin.css"> <!-- Admin panel -->
+    <link rel="stylesheet" href="css/responsive.css"> <!-- Responsive design -->
 
     <!-- ===== FAVICON ===== -->
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+
+    <!-- ===== PERFORMANCE OPTIMIZATION ===== -->
+    <style>
+        /* Critical CSS for above-the-fold content */
+        .logo,
+        .hero,
+        .product-grid {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body>
