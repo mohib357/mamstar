@@ -1,4 +1,6 @@
 // C:\Project\mamstar\server.js
+// MAM STAR E-commerce Backend Server
+// Express.js server for product management and API endpoints
 
 const express = require('express');
 const fs = require('fs');
@@ -7,24 +9,28 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware with increased payload size limit
+// ===== MIDDLEWARE CONFIGURATION =====
+// Configure CORS and request body parsing with increased limits for media uploads
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increase payload size limit to 50mb
+app.use(express.json({ limit: '50mb' })); // Increased payload size limit for image/video uploads
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname)));
 
-// Ensure data directory exists
+// ===== DATA DIRECTORY SETUP =====
+// Ensure data directory exists for storing product information
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Products JSON file path
+// ===== PRODUCTS DATA FILE CONFIGURATION =====
+// Define path for products JSON file
 const productsFilePath = path.join(dataDir, 'products.json');
 
-// Initialize products file if it doesn't exist
+// ===== INITIAL DATA SETUP =====
+// Initialize products file with sample data if it doesn't exist
 if (!fs.existsSync(productsFilePath)) {
-    // Initial sample products
+    // Sample product data for demonstration
     const initialProducts = [
         {
             id: 1,
@@ -76,38 +82,153 @@ if (!fs.existsSync(productsFilePath)) {
         }
     ];
 
+    // Write initial products to JSON file
     fs.writeFileSync(productsFilePath, JSON.stringify(initialProducts, null, 2));
+    console.log('Products file initialized with sample data');
 }
 
-// API to get all products
+// ===== API ROUTES =====
+
+// GET /api/products - Retrieve all products
 app.get('/api/products', (req, res) => {
     try {
+        console.log('Fetching all products...');
         const productsData = fs.readFileSync(productsFilePath, 'utf8');
-        res.json(JSON.parse(productsData));
+        const products = JSON.parse(productsData);
+        console.log(`Successfully retrieved ${products.length} products`);
+        res.json(products);
     } catch (error) {
         console.error('Error reading products file:', error);
-        res.status(500).json({ error: 'Failed to read products data' });
+        res.status(500).json({
+            error: 'Failed to read products data',
+            details: error.message
+        });
     }
 });
 
-// API to save products
+// POST /api/products - Save/update all products
 app.post('/api/products', (req, res) => {
     try {
-        fs.writeFileSync(productsFilePath, JSON.stringify(req.body, null, 2));
-        res.json({ success: true, message: 'Products saved successfully' });
+        console.log('Saving products data...');
+        const products = req.body;
+
+        // Validate request body
+        if (!Array.isArray(products)) {
+            return res.status(400).json({
+                error: 'Invalid data format. Expected an array of products.'
+            });
+        }
+
+        // Write products to file with proper formatting
+        fs.writeFileSync(productsFilePath, JSON.stringify(products, null, 2));
+        console.log(`Successfully saved ${products.length} products`);
+
+        res.json({
+            success: true,
+            message: 'Products saved successfully',
+            count: products.length
+        });
     } catch (error) {
         console.error('Error writing products file:', error);
-        res.status(500).json({ error: 'Failed to save products data' });
+        res.status(500).json({
+            error: 'Failed to save products data',
+            details: error.message
+        });
     }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
+// GET /api/products/:id - Get single product by ID
+app.get('/api/products/:id', (req, res) => {
+    try {
+        const productId = parseInt(req.params.id);
+        console.log(`Fetching product with ID: ${productId}`);
+
+        const productsData = fs.readFileSync(productsFilePath, 'utf8');
+        const products = JSON.parse(productsData);
+        const product = products.find(p => p.id === productId);
+
+        if (!product) {
+            return res.status(404).json({
+                error: 'Product not found'
+            });
+        }
+
+        console.log('Product found:', product.name);
+        res.json(product);
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        res.status(500).json({
+            error: 'Failed to fetch product data',
+            details: error.message
+        });
+    }
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'Server is running',
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+    });
 });
+
+// ===== ERROR HANDLING MIDDLEWARE =====
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err.stack);
+    res.status(500).json({
+        error: 'Something went wrong!',
+        message: err.message
+    });
+});
+
+// 404 Handler for undefined routes
+app.use('*', (req, res) => {
+    res.status(404).json({
+        error: 'API endpoint not found',
+        availableEndpoints: [
+            'GET /api/products',
+            'GET /api/products/:id',
+            'POST /api/products',
+            'GET /api/health'
+        ]
+    });
+});
+
+// ===== SERVER INITIALIZATION =====
+app.listen(PORT, () => {
+    console.log('===================================');
+    console.log('🚀 MAM STAR E-commerce Server');
+    console.log('===================================');
+    console.log(`📍 Server running on port ${PORT}`);
+    console.log(`🌐 Access the application at: http://localhost:${PORT}`);
+    console.log(`📊 API Health: http://localhost:${PORT}/api/health`);
+    console.log(`📦 Products API: http://localhost:${PORT}/api/products`);
+    console.log('===================================');
+
+    // Display server environment information
+    console.log('Environment Information:');
+    console.log(`- Node.js Version: ${process.version}`);
+    console.log(`- Platform: ${process.platform}`);
+    console.log(`- Data Directory: ${dataDir}`);
+    console.log(`- Products File: ${productsFilePath}`);
+    console.log('===================================');
+});
+
+// ===== GRACEFUL SHUTDOWN HANDLER =====
+process.on('SIGINT', () => {
+    console.log('\n===================================');
+    console.log('🛑 Server is shutting down...');
+    console.log('===================================');
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('\n===================================');
+    console.log('🛑 Server received termination signal');
+    console.log('===================================');
+    process.exit(0);
+});
+
+// Export app for testing purposes
+module.exports = app;
