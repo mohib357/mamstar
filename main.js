@@ -134,6 +134,21 @@ async function loadProducts() {
     }
 }
 
+// Validate GitHub token
+async function validateGithubToken(token) {
+    try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}`, {
+            headers: {
+                'Authorization': `token ${token}`
+            }
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error validating token:', error);
+        return false;
+    }
+}
+
 // Save products to JSON file via GitHub API
 async function saveProducts() {
     try {
@@ -185,8 +200,10 @@ async function saveProducts() {
             throw new Error(`Failed to get file: ${errorData.message}`);
         }
 
-        // Update the file
-        const content = btoa(JSON.stringify(products, null, 2));
+        // Update the file - Fix for Unicode characters
+        const jsonString = JSON.stringify(products, null, 2);
+        const content = btoa(unescape(encodeURIComponent(jsonString)));
+
         const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
             method: 'PUT',
             headers: {
@@ -376,6 +393,19 @@ tokenTestStyle.textContent = `
     
     .btn-primary:hover, .btn-secondary:hover {
         opacity: 0.9;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+    
+    .alert-warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
     }
 `;
 document.head.appendChild(tokenTestStyle);
@@ -1204,21 +1234,6 @@ function showAdminPanel() {
     }
 }
 
-// Validate GitHub token
-async function validateGithubToken(token) {
-    try {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}`, {
-            headers: {
-                'Authorization': `token ${token}`
-            }
-        });
-        return response.ok;
-    } catch (error) {
-        console.error('Error validating token:', error);
-        return false;
-    }
-}
-
 // Admin logout
 function adminLogout() {
     sessionStorage.removeItem('isAdminLoggedIn');
@@ -1265,8 +1280,6 @@ async function previewImage(input) {
         preview.style.display = 'block';
     }
 }
-
-
 
 // Preview video
 async function previewVideo(input) {
