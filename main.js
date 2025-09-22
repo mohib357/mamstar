@@ -101,17 +101,52 @@ const orderDetailContainer = document.getElementById('orderDetailContainer');
 const submitProductBtn = document.getElementById('submitProductBtn');
 const productIdInput = document.getElementById('productId');
 
-// Load products from localStorage if available
-function loadProducts() {
-    const savedProducts = localStorage.getItem('mamstarProducts');
-    if (savedProducts) {
-        products = JSON.parse(savedProducts);
+// Load products from JSON file
+async function loadProducts() {
+    try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+            products = await response.json();
+        } else {
+            // If server fails, try to load from localStorage as fallback
+            const savedProducts = localStorage.getItem('mamstarProducts');
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        // If fetch fails, try to load from localStorage as fallback
+        const savedProducts = localStorage.getItem('mamstarProducts');
+        if (savedProducts) {
+            products = JSON.parse(savedProducts);
+        }
     }
 }
 
-// Save products to localStorage
-function saveProducts() {
-    localStorage.setItem('mamstarProduct', JSON.stringify(products));
+// Save products to JSON file via API
+async function saveProducts() {
+    try {
+        const response = await fetch('/api/products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(products)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save products to server');
+        }
+
+        // Also save to localStorage as a backup
+        localStorage.setItem('mamstarProducts', JSON.stringify(products));
+    } catch (error) {
+        console.error('Error saving products:', error);
+        // If server save fails, save to localStorage only
+        localStorage.setItem('mamstarProducts', JSON.stringify(products));
+        showNotification('সার্ভারে সংরক্ষণ করা যায়নি, লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+    }
 }
 
 // Check if admin is logged in
@@ -667,7 +702,7 @@ function processCheckout(event) {
 
     // Update products display
     renderProducts();
-    saveProducts(); // Save to localStorage
+    saveProducts(); // Save to JSON file
 
     // Update orders table if admin is logged in
     if (adminPanel.classList.contains('active')) {
@@ -769,12 +804,12 @@ function editProduct(productId) {
 }
 
 // Delete product
-function deleteProduct(productId) {
+async function deleteProduct(productId) {
     if (confirm('আপনি কি এই পণ্যটি ডিলিট করতে চান?')) {
         products = products.filter(p => p.id !== productId);
         renderProducts();
         renderProductList();
-        saveProducts(); // Save to localStorage
+        await saveProducts(); // Save to JSON file
         showNotification('পণ্যটি ডিলিট করা হয়েছে!');
     }
 }
@@ -1376,7 +1411,7 @@ productForm.addEventListener('submit', async (e) => {
     } else {
         // Add new product
         const newProduct = {
-            id: products.length + 1,
+            id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
             name: document.getElementById('productName').value,
             category: document.getElementById('productCategory').value,
             price: parseInt(document.getElementById('productPrice').value),
@@ -1393,7 +1428,7 @@ productForm.addEventListener('submit', async (e) => {
     }
 
     renderProducts();
-    saveProducts(); // Save to localStorage
+    await saveProducts(); // Save to JSON file
     productForm.reset();
     document.getElementById('productId').value = '';
     document.getElementById('submitProductBtn').textContent = 'পণ্য যোগ করুন';
@@ -1546,8 +1581,9 @@ document.head.appendChild(style);
 
 // Initialize
 checkAdminLogin();
-loadProducts(); // Load from localStorage
-renderProducts();
+loadProducts().then(() => {
+    renderProducts();
+});
 
 // Add event listeners for media type tabs in existing items
 document.querySelectorAll('.media-item').forEach(item => {
