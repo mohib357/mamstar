@@ -1,4 +1,4 @@
-/* C:\Project\mamstar\css\admin.css - ADMIN PANEL STYLES */
+/* C:\Project\mamstar\css\admin.css - ENHANCED ADMIN PANEL STYLES */
 
 /* ===== ADMIN PANEL LAYOUT ===== */
 .admin-panel {
@@ -9,22 +9,45 @@
     margin: 40px auto;
     max-width: 1000px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .admin-panel.active {
     display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+.admin-panel.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.admin-panel.loading::after {
+    content: 'লোড হচ্ছে...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 10;
 }
 
 .admin-panel h2 {
     text-align: center;
     margin-bottom: 30px;
     color: var(--secondary);
+    font-size: 2rem;
 }
 
 .admin-actions {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+    gap: 15px;
 }
 
 /* ===== ADMIN TABS ===== */
@@ -32,23 +55,36 @@
     display: flex;
     margin-bottom: 20px;
     border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
 }
 
 .admin-tab {
-    padding: 10px 20px;
+    padding: 12px 24px;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #666;
+    position: relative;
+}
+
+.admin-tab:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+    color: var(--secondary);
+    transform: translateY(-1px);
 }
 
 .admin-tab.active {
     border-bottom-color: var(--primary);
     color: var(--primary);
-    font-weight: bold;
+    font-weight: 600;
+    background-color: white;
 }
 
 .admin-tab-content {
     display: none;
+    animation: fadeIn 0.3s ease-in;
 }
 
 .admin-tab-content.active {
@@ -57,76 +93,127 @@
 
 /* ===== MEDIA UPLOAD SECTION ===== */
 .media-upload-section {
-    border: 1px dashed #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 20px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    transition: border-color 0.3s ease;
+    background: #fafafa;
+}
+
+.media-upload-section:hover {
+    border-color: var(--primary);
 }
 
 .media-upload-section h4 {
     margin-bottom: 15px;
     color: var(--secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.media-upload-section h4::before {
+    content: '📁';
+    font-size: 1.2em;
 }
 
 .media-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #eee;
 }
 
-.media-item input[type="text"] {
-    flex: 1;
+.media-item:last-child {
+    margin-bottom: 0;
 }
 
+.media-item input[type="text"],
 .media-item input[type="file"] {
     flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+}
+
+.media-item input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
 }
 
 .media-preview {
     width: 60px;
     height: 60px;
     object-fit: cover;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+    border-radius: 6px;
+    border: 2px solid #eee;
+    transition: transform 0.3s;
+}
+
+.media-preview:hover {
+    transform: scale(1.05);
 }
 
 .remove-media {
     background-color: var(--danger);
     color: white;
     border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
+    padding: 6px 12px;
+    border-radius: 4px;
     cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.remove-media:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
 }
 
 .media-type-tabs {
     display: flex;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     border-bottom: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
 }
 
 .media-type-tab {
-    padding: 8px 15px;
+    padding: 10px 20px;
     cursor: pointer;
     border-bottom: 2px solid transparent;
     transition: all 0.3s;
     font-size: 0.9rem;
+    flex: 1;
+    text-align: center;
+}
+
+.media-type-tab:hover {
+    background-color: #f8f9fa;
 }
 
 .media-type-tab.active {
     border-bottom-color: var(--primary);
     color: var(--primary);
-    font-weight: bold;
+    font-weight: 600;
+    background-color: #fffef0;
 }
 
 .media-type-content {
     display: none;
-    padding: 10px 0;
+    padding: 12px 0;
 }
 
 .media-type-content.active {
     display: block;
+    animation: slideUp 0.3s ease;
 }
 
 .url-input-group {
@@ -137,79 +224,87 @@
 
 .url-input-group input {
     flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .url-input-group button {
     background-color: var(--info);
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 10px 16px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    white-space: nowrap;
 }
 
-/* ===== PRODUCT LIST TABLE ===== */
-.product-list {
+.url-input-group button:hover {
+    background-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* ===== TABLES ===== */
+.product-list,
+.orders-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .product-list th,
-.product-list td {
+.product-list td,
+.orders-table th,
+.orders-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
 }
 
-.product-list th {
+.product-list th,
+.orders-table th {
     background-color: var(--light);
     color: var(--secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.product-list tr:hover {
-    background-color: #f9f9f9;
+.product-list tr:hover,
+.orders-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.orders-table tr.clickable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.orders-table tr.clickable:hover {
+    background-color: #e3f2fd;
 }
 
 .product-thumbnail {
     width: 60px;
     height: 60px;
     object-fit: cover;
-    border-radius: 5px;
-}
-
-/* ===== ORDERS TABLE ===== */
-.orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.orders-table th,
-.orders-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.orders-table th {
-    background-color: var(--light);
-    color: var(--secondary);
-}
-
-.orders-table tr:hover {
-    background-color: #f9f9f9;
-}
-
-.orders-table tr.clickable {
-    cursor: pointer;
+    border-radius: 6px;
+    border: 2px solid #eee;
 }
 
 /* ===== ADMIN LOGIN MODAL ===== */
 .admin-login-modal .modal-content {
     max-width: 500px;
     text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
 .admin-login-form {
@@ -218,7 +313,8 @@
 
 .admin-login-form h3 {
     margin-bottom: 20px;
-    color: var(--secondary);
+    color: white;
+    font-size: 1.5rem;
 }
 
 .password-input-group {
@@ -228,10 +324,23 @@
 
 .password-input-group input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 12px 45px 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
     font-size: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.password-input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.password-input-group input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .password-toggle {
@@ -240,5 +349,103 @@
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    color: #777;
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s;
+}
+
+.password-toggle:hover {
+    color: white;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .admin-panel {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .admin-tabs {
+        flex-direction: column;
+    }
+
+    .admin-tab {
+        text-align: center;
+        border-bottom: none;
+        border-right: 3px solid transparent;
+    }
+
+    .admin-tab.active {
+        border-right-color: var(--primary);
+        border-bottom: none;
+    }
+
+    .media-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .url-input-group {
+        flex-direction: column;
+    }
+
+    .product-list,
+    .orders-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .admin-panel {
+        background: #2d3748;
+        color: white;
+    }
+
+    .media-upload-section {
+        background: #4a5568;
+        border-color: #718096;
+    }
+
+    .product-list th,
+    .orders-table th {
+        background-color: #4a5568;
+        color: white;
+    }
 }
