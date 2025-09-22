@@ -1,34 +1,39 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" dir="ltr">
 
 <head>
-    <!-- Document Metadata -->
+    <!-- ===== CRITICAL META TAGS ===== -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>MAM STAR - গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</title>
 
-    <!-- External Stylesheets -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <!-- ===== PRELOAD CRITICAL RESOURCES ===== -->
+    <link rel="preload" href="images/logo2.png" as="image">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
 
-    <!-- Separate CSS Files -->
+    <!-- ===== EXTERNAL DEPENDENCIES ===== -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ===== MODULAR CSS SYSTEM ===== -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="components.css">
     <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="modals.css">
     <link rel="stylesheet" href="responsive.css">
+
+    <!-- ===== FAVICON ===== -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 </head>
 
 <body>
     <!-- ===== HEADER SECTION ===== -->
-    <!-- Main website header with logo, navigation and user actions -->
-    <header>
+    <header role="banner">
         <div class="container header-container">
-            <!-- Logo Section -->
-            <div class="logo">
+            <!-- Logo with better accessibility -->
+            <div class="logo" aria-label="MAM STAR Logo">
                 <div class="logo_container">
-                    <img src="images/logo2.png" alt="MAM STAR Logo">
+                    <img src="images/logo2.png" alt="MAM STAR Logo" width="80" height="80">
                 </div>
                 <div>
                     <h1>MAM STAR</h1>
@@ -36,8 +41,8 @@
                 </div>
             </div>
 
-            <!-- Main Navigation Menu -->
-            <nav>
+            <!-- Navigation with ARIA label -->
+            <nav aria-label="Main Navigation">
                 <ul>
                     <li><a href="#home">হোম</a></li>
                     <li><a href="#products">পণ্য</a></li>
@@ -46,13 +51,13 @@
                 </ul>
             </nav>
 
-            <!-- Header Actions (Cart & Admin) -->
+            <!-- Header Actions -->
             <div class="header-actions">
-                <div class="cart-icon" id="cartIcon">
+                <div class="cart-icon" id="cartIcon" aria-label="Shopping Cart" role="button">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count" id="cartCount">0</span>
                 </div>
-                <div class="admin-icon" id="adminIcon">
+                <div class="admin-icon" id="adminIcon" aria-label="Admin Panel" role="button">
                     <i class="fas fa-cog"></i>
                 </div>
             </div>
@@ -411,7 +416,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript File -->
+    <!-- ===== JAVASCRIPT MODULES ===== -->
     <script src="js/modules/utils.js"></script>
     <script src="js/modules/github-integration.js"></script>
     <script src="js/modules/product-manager.js"></script>
