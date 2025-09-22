@@ -1,20 +1,23 @@
-<!-- C:\Project\mamstar\index.html -->
-
 <!DOCTYPE html>
 <html lang="bn">
 
 <head>
+    <!-- Document Metadata -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAM STAR - গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</title>
+
+    <!-- External Stylesheets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!-- Header -->
+    <!-- ===== HEADER SECTION ===== -->
+    <!-- Main website header with logo, navigation and user actions -->
     <header>
         <div class="container header-container">
+            <!-- Logo Section -->
             <div class="logo">
                 <div class="logo_container">
                     <img src="images/logo2.png" alt="MAM STAR Logo">
@@ -24,6 +27,8 @@
                     <div class="tagline">গুণমানে উজ্জ্বল, বিশ্বাসে অটুট</div>
                 </div>
             </div>
+
+            <!-- Main Navigation Menu -->
             <nav>
                 <ul>
                     <li><a href="#home">হোম</a></li>
@@ -32,6 +37,8 @@
                     <li><a href="#contact">যোগাযোগ</a></li>
                 </ul>
             </nav>
+
+            <!-- Header Actions (Cart & Admin) -->
             <div class="header-actions">
                 <div class="cart-icon" id="cartIcon">
                     <i class="fas fa-shopping-cart"></i>
@@ -44,7 +51,8 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- ===== HERO SECTION ===== -->
+    <!-- Main banner section with welcome message and call-to-action -->
     <section class="hero" id="home">
         <div class="container">
             <h2>MAM STAR এ স্বাগতম</h2>
@@ -53,7 +61,8 @@
         </div>
     </section>
 
-    <!-- Products Section -->
+    <!-- ===== PRODUCTS SECTION ===== -->
+    <!-- Display area for all products -->
     <section class="products" id="products">
         <div class="container">
             <div class="section-title">
@@ -66,20 +75,22 @@
         </div>
     </section>
 
-    <!-- Admin Panel -->
+    <!-- ===== ADMIN PANEL SECTION ===== -->
+    <!-- Admin interface for managing products and orders -->
     <div class="admin-panel" id="adminPanel">
         <div class="admin-actions">
             <h2>অ্যাডমিন প্যানেল</h2>
             <button class="logout-btn" id="logoutBtn">লগআউট</button>
         </div>
 
+        <!-- Admin Navigation Tabs -->
         <div class="admin-tabs">
             <div class="admin-tab active" data-tab="products">পণ্য যোগ করুন</div>
             <div class="admin-tab" data-tab="product-list">পণ্য তালিকা</div>
             <div class="admin-tab" data-tab="orders">অর্ডার ব্যবস্থাপনা</div>
         </div>
 
-        <!-- Add Product Tab -->
+        <!-- Tab 1: Add Product Form -->
         <div class="admin-tab-content active" id="products-tab">
             <form id="productForm">
                 <input type="hidden" id="productId" value="">
@@ -119,6 +130,7 @@
                     <input type="number" class="form-control" id="productStock" min="0" required>
                 </div>
 
+                <!-- Image Upload Section -->
                 <div class="media-upload-section">
                     <h4>ছবি যোগ করুন</h4>
                     <div id="imageUploads">
@@ -144,6 +156,7 @@
                     <button type="button" class="btn-info" id="addImageBtn">আরও ছবি যোগ করুন</button>
                 </div>
 
+                <!-- Video Upload Section -->
                 <div class="media-upload-section">
                     <h4>ভিডিও যোগ করুন</h4>
                     <div id="videoUploads">
@@ -178,7 +191,7 @@
             </form>
         </div>
 
-        <!-- Product List Tab -->
+        <!-- Tab 2: Product List Management -->
         <div class="admin-tab-content" id="product-list-tab">
             <h3>পণ্য তালিকা</h3>
             <table class="product-list">
@@ -198,7 +211,7 @@
             </table>
         </div>
 
-        <!-- Orders Tab -->
+        <!-- Tab 3: Order Management -->
         <div class="admin-tab-content" id="orders-tab">
             <h3>অর্ডার তালিকা</h3>
             <table class="orders-table">
@@ -218,6 +231,8 @@
         </div>
     </div>
 
+    <!-- ===== MODAL SECTIONS ===== -->
+
     <!-- Product Detail Modal -->
     <div id="productDetailModal" class="modal product-detail-modal">
         <div class="modal-content">
@@ -228,7 +243,7 @@
         </div>
     </div>
 
-    <!-- Cart Modal -->
+    <!-- Shopping Cart Modal -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeCartModal">&times;</span>
@@ -246,7 +261,7 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
+    <!-- Checkout Process Modal -->
     <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeCheckoutModal">&times;</span>
@@ -300,7 +315,7 @@
         </div>
     </div>
 
-    <!-- Order Detail Modal -->
+    <!-- Order Details View Modal -->
     <div id="orderDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeOrderDetailModal">&times;</span>
@@ -325,7 +340,7 @@
         </div>
     </div>
 
-    <!-- Admin Login Modal -->
+    <!-- Admin Login Authentication Modal -->
     <div id="adminLoginModal" class="modal admin-login-modal">
         <div class="modal-content">
             <span class="close-modal" id="closeAdminLoginModal">&times;</span>
@@ -342,7 +357,8 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- ===== FOOTER SECTION ===== -->
+    <!-- Website footer with contact info and links -->
     <footer id="contact">
         <div class="container">
             <div class="footer-content">
@@ -384,9 +400,10 @@
                 </a>
                 <p>&copy; ২০২৩ MAM STAR. সর্বস্বত্ব সংরক্ষিত।</p>
             </div>
-
         </div>
     </footer>
+
+    <!-- JavaScript File -->
     <script src="main.js"></script>
 </body>
 
