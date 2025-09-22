@@ -9,7 +9,8 @@ function isYouTubeUrl(url) {
 // Get YouTube embed URL from a YouTube URL
 function getYouTubeEmbedUrl(url) {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)[1];
-    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`;
+    // Add parameters to hide YouTube branding and related videos
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&modestbranding=1&rel=0&showinfo=0&controls=1&iv_load_policy=3&cc_load_policy=0`;
 }
 
 // Sample initial products
@@ -265,7 +266,6 @@ async function saveProducts() {
             } else {
                 showNotification(`GitHub এ সংরক্ষণ করা যায়নি: ${errorData.message || 'Unknown error'}`, 'error');
             }
-
             throw new Error(`Failed to update file on GitHub: ${errorData.message}`);
         }
     } catch (error) {
@@ -324,7 +324,6 @@ function showGithubTokenModal() {
         document.getElementById('closeGithubTokenModal').addEventListener('click', () => {
             tokenModal.style.display = 'none';
         });
-
         document.getElementById('saveGithubToken').addEventListener('click', async () => {
             const token = document.getElementById('githubTokenInput').value;
             if (token) {
@@ -341,20 +340,15 @@ function showGithubTokenModal() {
                 showNotification('টোকেন প্রদান করুন!', 'error');
             }
         });
-
         document.getElementById('testGithubToken').addEventListener('click', async () => {
             const token = document.getElementById('githubTokenInput').value;
             const testResult = document.getElementById('tokenTestResult');
-
             if (!token) {
                 testResult.innerHTML = '<div class="error">টোকেন প্রদান করুন!</div>';
                 return;
             }
-
             testResult.innerHTML = '<div class="testing">টোকেন পরীক্ষা করা হচ্ছে...</div>';
-
             const isValid = await validateGithubToken(token);
-
             if (isValid) {
                 testResult.innerHTML = '<div class="success">টোকেন সঠিক এবং কার্যকরী!</div>';
             } else {
@@ -387,22 +381,18 @@ tokenTestStyle.textContent = `
         margin-top: 15px;
         padding: 10px;
         border-radius: 5px;
-    }
-    
+    }    
     .token-test-result .testing {
         color: #2196F3;
-    }
-    
+    }    
     .token-test-result .success {
         color: #4CAF50;
         font-weight: bold;
-    }
-    
+    }    
     .token-test-result .error {
         color: #F44336;
         font-weight: bold;
-    }
-    
+    }    
     .btn-primary {
         background-color: var(--primary);
         color: white;
@@ -411,8 +401,7 @@ tokenTestStyle.textContent = `
         border-radius: 4px;
         cursor: pointer;
         margin-right: 10px;
-    }
-    
+    }    
     .btn-secondary {
         background-color: #6c757d;
         color: white;
@@ -420,19 +409,16 @@ tokenTestStyle.textContent = `
         padding: 8px 16px;
         border-radius: 4px;
         cursor: pointer;
-    }
-    
+    }    
     .btn-primary:hover, .btn-secondary:hover {
         opacity: 0.9;
-    }
-    
+    }    
     .alert {
         padding: 15px;
         margin-bottom: 20px;
         border: 1px solid transparent;
         border-radius: 4px;
-    }
-    
+    }    
     .alert-warning {
         color: #856404;
         background-color: #fff3cd;
@@ -451,21 +437,16 @@ function checkAdminLogin() {
 // Render products
 function renderProducts() {
     productGrid.innerHTML = '';
-
     products.forEach(product => {
         const productCard = document.createElement('div');
         productCard.className = 'product-card';
-
         const discountBadge = product.discount > 0 ?
             `<div class="discount-badge">${product.discount}% ছাড়</div>` : '';
-
         const stockBadge = product.stock > 0 ?
             `<div class="stock-badge">স্টক: ${product.stock}</div>` :
             `<div class="stock-badge" style="background-color: var(--danger);">স্টক শেষ</div>`;
-
         const oldPriceHtml = product.oldPrice > 0 ?
             `<span class="old-price">৳${product.oldPrice}</span>` : '';
-
         productCard.innerHTML = `
             <div class="product-img" onclick="showProductDetail(${product.id})">
                 <img src="${product.images[0]}" alt="${product.name}">
@@ -484,7 +465,6 @@ function renderProducts() {
                 </div>
             </div>
         `;
-
         productGrid.appendChild(productCard);
     });
 }
@@ -493,7 +473,6 @@ function renderProducts() {
 function quickAddToCart(productId) {
     const product = products.find(p => p.id === productId);
     if (!product || product.stock <= 0) return;
-
     addToCart(product, 1);
 }
 
@@ -539,7 +518,6 @@ function showProductDetail(productId) {
 
     // Get initial media
     const initialMedia = media[0] || { type: 'image', src: 'https://via.placeholder.com/500x500?text=No+Image' };
-
     productDetailContainer.innerHTML = `
         <div class="product-gallery">
             <div class="main-image-container" id="mainImageContainer">
@@ -597,7 +575,6 @@ function showProductDetail(productId) {
             updateTotalPrice(product.price);
         }
     });
-
     document.getElementById('increaseQty').addEventListener('click', () => {
         const qtyInput = document.getElementById('productQty');
         if (qtyInput.value < product.stock) {
@@ -605,19 +582,18 @@ function showProductDetail(productId) {
             updateTotalPrice(product.price);
         }
     });
-
     document.getElementById('productQty').addEventListener('input', () => {
         updateTotalPrice(product.price);
     });
-
     document.getElementById('addToCartBtn').addEventListener('click', () => {
         const qty = parseInt(document.getElementById('productQty').value);
         addToCart(product, qty);
         productDetailModal.style.display = 'none';
     });
-
     productDetailModal.style.display = 'block';
 }
+
+
 
 // Change media (image or video)
 function changeMedia(index) {
@@ -640,7 +616,6 @@ function changeMedia(index) {
     // Remove existing zoom elements if any
     const existingZoomLens = document.getElementById('zoomLens');
     if (existingZoomLens) existingZoomLens.remove();
-
     const existingZoomContainer = document.querySelector('.zoom-container');
     if (existingZoomContainer) existingZoomContainer.remove();
 
@@ -660,30 +635,136 @@ function changeMedia(index) {
     } else {
         // Check if it's a YouTube URL
         if (isYouTubeUrl(selectedMedia.src)) {
-            // Show YouTube video in iframe
+            const customVideoContainer = document.createElement('div');
+            customVideoContainer.className = 'custom-video-container';
+            customVideoContainer.style.position = 'relative';
+            customVideoContainer.style.width = '100%';
+            customVideoContainer.style.height = '350px';
+            customVideoContainer.style.borderRadius = '10px';
+            customVideoContainer.style.overflow = 'hidden';
+
+            // Create overlay to hide YouTube branding
+            const overlay = document.createElement('div');
+            overlay.className = 'video-overlay';
+            overlay.style.position = 'absolute';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.zIndex = '1';
+            overlay.style.pointerEvents = 'none';
+
+            // Create iframe with parameters to hide YouTube branding
             const iframe = document.createElement('iframe');
             iframe.src = getYouTubeEmbedUrl(selectedMedia.src);
             iframe.className = 'main-video';
             iframe.id = 'mainVideo';
-            iframe.frameBorder = '0';
-            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            iframe.allowFullscreen = true;
-            mainImageContainer.appendChild(iframe);
+            iframe.style.position = 'absolute';
+            iframe.style.top = '0';
+            iframe.style.left = '0';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.zIndex = '0';
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+            iframe.setAttribute('allowfullscreen', '');
+            customVideoContainer.appendChild(iframe);
+            customVideoContainer.appendChild(overlay);
+            mainImageContainer.appendChild(customVideoContainer);
 
-            // Add a visual indicator for YouTube
-            const youtubeIndicator = document.createElement('div');
-            youtubeIndicator.className = 'youtube-indicator';
-            youtubeIndicator.innerHTML = '<i class="fab fa-youtube"></i>';
-            youtubeIndicator.style.position = 'absolute';
-            youtubeIndicator.style.top = '10px';
-            youtubeIndicator.style.left = '10px';
-            youtubeIndicator.style.background = 'rgba(255, 0, 0, 0.8)';
-            youtubeIndicator.style.color = 'white';
-            youtubeIndicator.style.padding = '8px';
-            youtubeIndicator.style.borderRadius = '50%';
-            youtubeIndicator.style.zIndex = '10';
-            youtubeIndicator.style.fontSize = '16px';
-            mainImageContainer.appendChild(youtubeIndicator);
+            // Add a custom play button overlay
+            const playButton = document.createElement('div');
+            playButton.className = 'custom-play-button';
+            playButton.style.position = 'absolute';
+            playButton.style.top = '50%';
+            playButton.style.left = '50%';
+            playButton.style.transform = 'translate(-50%, -50%)';
+            playButton.style.width = '60px';
+            playButton.style.height = '60px';
+            playButton.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            playButton.style.borderRadius = '50%';
+            playButton.style.display = 'flex';
+            playButton.style.alignItems = 'center';
+            playButton.style.justifyContent = 'center';
+            playButton.style.cursor = 'pointer';
+            playButton.style.zIndex = '2';
+            playButton.style.transition = 'all 0.3s ease';
+
+            const playIcon = document.createElement('i');
+            playIcon.className = 'fas fa-play';
+            playIcon.style.color = '#FF0000';
+            playIcon.style.fontSize = '24px';
+            playIcon.style.marginLeft = '4px';
+
+            playButton.appendChild(playIcon);
+            customVideoContainer.appendChild(playButton);
+
+            // Add click event to play button
+            playButton.addEventListener('click', () => {
+                // Play the video
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                playButton.style.display = 'none';
+            });
+
+            // Add a custom sound indicator
+            const soundIndicator = document.createElement('div');
+            soundIndicator.className = 'sound-indicator';
+            soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
+            soundIndicator.style.position = 'absolute';
+            soundIndicator.style.top = '10px';
+            soundIndicator.style.right = '10px';
+            soundIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            soundIndicator.style.color = 'white';
+            soundIndicator.style.padding = '8px';
+            soundIndicator.style.borderRadius = '50%';
+            soundIndicator.style.cursor = 'pointer';
+            soundIndicator.style.zIndex = '3';
+            soundIndicator.style.fontSize = '16px';
+            soundIndicator.style.transition = 'all 0.3s ease';
+
+            // Add click event to sound indicator
+            soundIndicator.addEventListener('click', () => {
+                // Toggle mute
+                const isMuted = soundIndicator.innerHTML.includes('fa-volume-mute');
+                if (isMuted) {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                    soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+                    soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            });
+
+            customVideoContainer.appendChild(soundIndicator);
+
+            // Add a custom overlay to hide the "i" button
+            const infoButtonOverlay = document.createElement('div');
+            infoButtonOverlay.style.position = 'absolute';
+            infoButtonOverlay.style.bottom = '0';
+            infoButtonOverlay.style.right = '0';
+            infoButtonOverlay.style.width = '50px';
+            infoButtonOverlay.style.height = '50px';
+            infoButtonOverlay.style.backgroundColor = 'transparent';
+            infoButtonOverlay.style.zIndex = '4';
+            infoButtonOverlay.style.pointerEvents = 'auto';
+            customVideoContainer.appendChild(infoButtonOverlay);
+
+            // Add click event to info button overlay to prevent clicks
+            infoButtonOverlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Add event listener for video state changes
+            window.addEventListener('message', function (event) {
+                if (event.data && event.data.event === 'infoDelivery') {
+                    const info = event.data.info;
+                    if (info && info.playerState === 0) { // Video ended
+                        // Show play button again
+                        playButton.style.display = 'flex';
+                    }
+                }
+            });
         } else {
             // Show regular video
             const mainVideo = document.createElement('video');
@@ -691,8 +772,8 @@ function changeMedia(index) {
             mainVideo.className = 'main-video';
             mainVideo.id = 'mainVideo';
             mainVideo.controls = true;
-            mainVideo.autoplay = true;
-            mainVideo.loop = true;
+            mainVideo.autoplay = false; // Don't autoplay initially
+            mainVideo.loop = false; // Don't loop by default
             mainVideo.muted = false; // Sound is on by default
             mainVideo.volume = 1.0; // Set volume to maximum
             mainImageContainer.appendChild(mainVideo);
@@ -729,29 +810,11 @@ function changeMedia(index) {
 
             mainImageContainer.appendChild(soundIndicator);
 
-            // Handle autoplay restrictions
-            const playPromise = mainVideo.play();
-
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    // Autoplay started
-                }).catch(error => {
-                    // Autoplay was prevented
-                    mainVideo.muted = true;
-                    soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                    showNotification('ব্রাউজার সাউন্ড বন্ধ করে দিয়েছে, ভিডিওতে ক্লিক করুন', 'warning');
-
-                    // Add click event to unmute
-                    mainVideo.addEventListener('click', function () {
-                        if (this.muted) {
-                            this.muted = false;
-                            this.volume = 1.0;
-                            soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
-                            showNotification('সাউন্ড চালু করা হয়েছে', 'info');
-                        }
-                    });
-                });
-            }
+            // Add event listener for video end
+            mainVideo.addEventListener('ended', function () {
+                // Reset to beginning
+                this.currentTime = 0;
+            });
         }
     }
 
@@ -760,6 +823,7 @@ function changeMedia(index) {
         thumb.classList.toggle('active', i === index);
     });
 }
+
 
 // Setup image zoom functionality
 function setupImageZoom() {
@@ -832,15 +896,39 @@ function setupImageZoom() {
     });
 }
 
+
+
 // Event listener for closing product detail modal
 closeProductModal.addEventListener('click', () => {
     // Pause any playing videos
     const videos = productDetailModal.querySelectorAll('video');
     videos.forEach(video => {
         video.pause();
+        video.currentTime = 0; // Reset video to beginning
     });
+
+    // Stop YouTube iframes
+    const iframes = productDetailModal.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+        // Send pause command to YouTube iframe
+        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        // Reset the iframe to stop the video completely
+        const src = iframe.src;
+        iframe.src = '';
+        iframe.src = src;
+
+        // Show play button again
+        const playButton = iframe.closest('.custom-video-container')?.querySelector('.custom-play-button');
+        if (playButton) {
+            playButton.style.display = 'flex';
+        }
+    });
+
     productDetailModal.style.display = 'none';
 });
+
+
+
 
 // Also pause videos when clicking outside the modal
 window.addEventListener('click', (e) => {
@@ -849,10 +937,31 @@ window.addEventListener('click', (e) => {
         const videos = productDetailModal.querySelectorAll('video');
         videos.forEach(video => {
             video.pause();
+            video.currentTime = 0; // Reset video to beginning
         });
+
+        // Stop YouTube iframes
+        const iframes = productDetailModal.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+            // Send pause command to YouTube iframe
+            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            // Reset the iframe to stop the video completely
+            const src = iframe.src;
+            iframe.src = '';
+            iframe.src = src;
+
+            // Show play button again
+            const playButton = iframe.closest('.custom-video-container')?.querySelector('.custom-play-button');
+            if (playButton) {
+                playButton.style.display = 'flex';
+            }
+        });
+
         productDetailModal.style.display = 'none';
     }
 });
+
+
 
 // Update total price
 function updateTotalPrice(price) {
