@@ -1,5 +1,7 @@
 /* C:\Project\mamstar\style.css */
 
+/* ===== GLOBAL STYLES ===== */
+/* Reset and base styles for consistent rendering across browsers */
 * {
     margin: 0;
     padding: 0;
@@ -7,6 +9,8 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* ===== CSS VARIABLES ===== */
+/* Centralized color scheme for easy theme management */
 :root {
     --primary: #FFD700;
     --secondary: #1a365d;
@@ -19,19 +23,24 @@
     --warning: #ffc107;
 }
 
+/* ===== BODY STYLES ===== */
+/* Main page background and typography settings */
 body {
     background-color: #f5f5f5;
     color: var(--dark);
     line-height: 1.6;
 }
 
+/* ===== LAYOUT CONTAINER ===== */
+/* Centered container for consistent content width */
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* Header Styles */
+/* ===== HEADER STYLES ===== */
+/* Navigation header with sticky positioning */
 header {
     background: linear-gradient(135deg, var(--secondary), var(--dark));
     color: white;
@@ -48,6 +57,7 @@ header {
     align-items: center;
 }
 
+/* Logo section styling */
 .logo {
     display: flex;
     align-items: center;
@@ -85,6 +95,7 @@ header {
     margin-top: -5px;
 }
 
+/* Navigation menu styles */
 nav ul {
     display: flex;
     list-style: none;
@@ -118,6 +129,7 @@ nav a:hover::after {
     width: 100%;
 }
 
+/* Header action buttons (cart and admin) */
 .header-actions {
     display: flex;
     align-items: center;
@@ -163,7 +175,8 @@ nav a:hover::after {
     color: var(--primary);
 }
 
-/* Hero Section */
+/* ===== HERO SECTION STYLES ===== */
+/* Main banner section with background image */
 .hero {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('images/hero-img.jpg');
     background-size: cover;
@@ -205,7 +218,8 @@ nav a:hover::after {
     transform: translateY(-3px);
 }
 
-/* Products Section */
+/* ===== PRODUCTS SECTION STYLES ===== */
+/* Products grid and card layouts */
 .products {
     padding: 60px 0;
 }
@@ -240,6 +254,7 @@ nav a:hover::after {
     gap: 30px;
 }
 
+/* Individual product card styling */
 .product-card {
     background: white;
     border-radius: 10px;
@@ -272,6 +287,7 @@ nav a:hover::after {
     transform: scale(1.1);
 }
 
+/* Product badges (discount and stock indicators) */
 .discount-badge {
     position: absolute;
     top: 15px;
@@ -359,7 +375,8 @@ nav a:hover::after {
     color: #999;
 }
 
-/* Admin Panel */
+/* ===== ADMIN PANEL STYLES ===== */
+/* Admin interface styling for product management */
 .admin-panel {
     display: none;
     background: white;
@@ -401,6 +418,7 @@ nav a:hover::after {
     background-color: #c82333;
 }
 
+/* Admin tab navigation */
 .admin-tabs {
     display: flex;
     margin-bottom: 20px;
@@ -428,6 +446,7 @@ nav a:hover::after {
     display: block;
 }
 
+/* Form styling for admin inputs */
 .form-group {
     margin-bottom: 20px;
 }
@@ -453,6 +472,7 @@ nav a:hover::after {
     box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
 }
 
+/* Button variants */
 .btn-primary {
     background-color: var(--primary);
     color: var(--dark);
@@ -498,7 +518,8 @@ nav a:hover::after {
     margin-left: 10px;
 }
 
-/* Media Upload Section */
+/* ===== MEDIA UPLOAD SECTION ===== */
+/* Styling for image and video upload interfaces */
 .media-upload-section {
     border: 1px dashed #ddd;
     border-radius: 5px;
@@ -543,7 +564,8 @@ nav a:hover::after {
     cursor: pointer;
 }
 
-/* Product List */
+/* ===== PRODUCT LIST TABLE ===== */
+/* Admin product management table styling */
 .product-list {
     width: 100%;
     border-collapse: collapse;
@@ -573,7 +595,8 @@ nav a:hover::after {
     border-radius: 5px;
 }
 
-/* Orders Section */
+/* ===== ORDERS MANAGEMENT STYLES ===== */
+/* Order table and status indicators */
 .orders-table {
     width: 100%;
     border-collapse: collapse;
@@ -600,6 +623,7 @@ nav a:hover::after {
     cursor: pointer;
 }
 
+/* Order status badge variants */
 .status-badge {
     padding: 5px 10px;
     border-radius: 20px;
@@ -632,7 +656,8 @@ nav a:hover::after {
     color: white;
 }
 
-/* Modal Styles */
+/* ===== MODAL STYLES ===== */
+/* Base modal overlay and content styling */
 .modal {
     display: none;
     position: fixed;
@@ -668,7 +693,8 @@ nav a:hover::after {
     color: var(--danger);
 }
 
-/* Product Detail Modal */
+/* ===== PRODUCT DETAIL MODAL STYLES ===== */
+/* Expanded product view with image gallery */
 .product-detail-modal .modal-content {
     max-width: 1000px;
 }
@@ -842,7 +868,8 @@ nav a:hover::after {
     color: var(--secondary);
 }
 
-/* Cart Modal */
+/* ===== CART MODAL STYLES ===== */
+/* Shopping cart interface styling */
 .cart-items {
     margin-bottom: 20px;
 }
@@ -937,7 +964,8 @@ nav a:hover::after {
     background-color: #218838;
 }
 
-/* Checkout Modal */
+/* ===== CHECKOUT MODAL STYLES ===== */
+/* Checkout form and order summary */
 .checkout-form {
     margin-top: 20px;
 }
@@ -977,7 +1005,8 @@ nav a:hover::after {
     border-top: 1px solid #ddd;
 }
 
-/* Order Detail Modal */
+/* ===== ORDER DETAIL MODAL STYLES ===== */
+/* Detailed order view for customers and admin */
 .order-detail-container {
     margin-top: 20px;
 }
@@ -1042,7 +1071,8 @@ nav a:hover::after {
     background-color: #c82333;
 }
 
-/* Admin Login Modal */
+/* ===== ADMIN LOGIN MODAL STYLES ===== */
+/* Secure admin authentication interface */
 .admin-login-modal .modal-content {
     max-width: 500px;
     text-align: center;
@@ -1079,7 +1109,8 @@ nav a:hover::after {
     color: #777;
 }
 
-/* Order Confirmation */
+/* ===== ORDER CONFIRMATION STYLES ===== */
+/* Success confirmation after order placement */
 .order-confirmation {
     text-align: center;
     padding: 30px;
@@ -1100,7 +1131,8 @@ nav a:hover::after {
     margin-bottom: 20px;
 }
 
-/* Notification */
+/* ===== NOTIFICATION SYSTEM ===== */
+/* Toast notifications for user feedback */
 .notification {
     position: fixed;
     bottom: 20px;
@@ -1142,7 +1174,8 @@ nav a:hover::after {
     background-color: var(--info);
 }
 
-/* Footer */
+/* ===== FOOTER STYLES ===== */
+/* Site footer with contact information and links */
 footer {
     background-color: var(--secondary);
     color: white;
@@ -1228,7 +1261,8 @@ footer {
     text-decoration: underline;
 }
 
-/* Media Type Tabs */
+/* ===== MEDIA TYPE TABS ===== */
+/* Tab interface for file vs URL media upload */
 .media-type-tabs {
     display: flex;
     margin-bottom: 10px;
@@ -1278,7 +1312,8 @@ footer {
     font-size: 0.8rem;
 }
 
-/* Video thumbnail styles */
+/* ===== VIDEO THUMBNAIL STYLES ===== */
+/* Video preview and thumbnail styling */
 .video-thumbnail {
     position: relative;
     width: 80px;
@@ -1318,7 +1353,7 @@ footer {
     z-index: 2;
 }
 
-/* Main video styles */
+/* Main video player styling */
 .main-video {
     width: 100%;
     height: 350px;
@@ -1326,7 +1361,7 @@ footer {
     border-radius: 10px;
 }
 
-/* Sound indicator style */
+/* Sound control indicator */
 .sound-indicator {
     position: absolute;
     top: 10px;
@@ -1353,7 +1388,7 @@ footer {
     overflow: visible;
 }
 
-/* Zoom lens styling */
+/* Image zoom lens styling */
 .zoom-lens {
     width: 100px;
     height: 100px;
@@ -1370,7 +1405,8 @@ footer {
     color: var(--dark);
 }
 
-/* Responsive */
+/* ===== RESPONSIVE DESIGN ===== */
+/* Mobile and tablet responsive adjustments */
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
