@@ -149,6 +149,15 @@ async function saveProducts() {
             return;
         }
 
+        // Validate token before proceeding
+        const isTokenValid = await validateGithubToken(githubToken);
+        if (!isTokenValid) {
+            showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+            localStorage.removeItem('githubToken');
+            showGithubTokenModal();
+            return;
+        }
+
         // Get the current file SHA
         const getFileResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
             headers: {
@@ -163,6 +172,12 @@ async function saveProducts() {
         } else if (getFileResponse.status === 404) {
             // File doesn't exist yet, which is fine for the first time
             console.log('File does not exist yet, will create a new one');
+        } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
+            // Token is invalid or doesn't have permissions
+            showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+            localStorage.removeItem('githubToken');
+            showGithubTokenModal();
+            return;
         } else {
             // Other error
             const errorData = await getFileResponse.json();
@@ -193,15 +208,10 @@ async function saveProducts() {
             console.error('Error updating file:', errorData);
 
             // Check for specific errors
-            if (updateResponse.status === 401) {
+            if (updateResponse.status === 401 || updateResponse.status === 403) {
                 showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+                localStorage.removeItem('githubToken');
                 showGithubTokenModal();
-            } else if (updateResponse.status === 403) {
-                if (errorData.message && errorData.message.includes('rate limit')) {
-                    showNotification('GitHub API রেট লিমিট অতিক্রম করা হয়েছে, পরে আবার চেষ্টা করুন', 'warning');
-                } else {
-                    showNotification('GitHub এ ফাইল আপডেট করার অনুমতি নেই', 'error');
-                }
             } else if (updateResponse.status === 404) {
                 showNotification('GitHub রিপোজিটরি বা ফাইল পাওয়া যায়নি', 'error');
             } else {
@@ -254,6 +264,9 @@ function showGithubTokenModal() {
                         <button id="testGithubToken" class="btn-secondary">টোকেন পরীক্ষা করুন</button>
                     </div>
                     <div id="tokenTestResult" class="token-test-result"></div>
+                    <div class="alert alert-warning mt-3">
+                        <strong>গুরুত্বপূর্ণ:</strong> টোকেন তৈরি করার সময় অবশ্যই <strong>repo</strong> স্কোপ সিলেক্ট করতে হবে।
+                    </div>
                 </div>
             </div>
         `;
@@ -264,12 +277,18 @@ function showGithubTokenModal() {
             tokenModal.style.display = 'none';
         });
 
-        document.getElementById('saveGithubToken').addEventListener('click', () => {
+        document.getElementById('saveGithubToken').addEventListener('click', async () => {
             const token = document.getElementById('githubTokenInput').value;
             if (token) {
-                localStorage.setItem('githubToken', token);
-                showNotification('GitHub টোকেন সফলভাবে সংরক্ষিত হয়েছে!');
-                tokenModal.style.display = 'none';
+                // Validate token before saving
+                const isValid = await validateGithubToken(token);
+                if (isValid) {
+                    localStorage.setItem('githubToken', token);
+                    showNotification('GitHub টোকেন সফলভাবে সংরক্ষিত হয়েছে!');
+                    tokenModal.style.display = 'none';
+                } else {
+                    showNotification('টোকেনটি বৈধ নয়, অনুগ্রহ করে আবার চেষ্টা করুন', 'error');
+                }
             } else {
                 showNotification('টোকেন প্রদান করুন!', 'error');
             }
@@ -286,31 +305,12 @@ function showGithubTokenModal() {
 
             testResult.innerHTML = '<div class="testing">টোকেন পরীক্ষা করা হচ্ছে...</div>';
 
-            try {
-                const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}`, {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
+            const isValid = await validateGithubToken(token);
 
-                if (response.ok) {
-                    testResult.innerHTML = '<div class="success">টোকেন সঠিক এবং কার্যকরী!</div>';
-                } else {
-                    const errorData = await response.json();
-                    let errorMessage = 'টোকেন অবৈধ!';
-
-                    if (response.status === 401) {
-                        errorMessage = 'টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে!';
-                    } else if (response.status === 403) {
-                        errorMessage = 'টোকেনের অধিকার অপর্যাপ্ত!';
-                    } else if (response.status === 404) {
-                        errorMessage = 'রিপোজিটরি পাওয়া যায়নি!';
-                    }
-
-                    testResult.innerHTML = `<div class="error">${errorMessage}</div>`;
-                }
-            } catch (error) {
-                testResult.innerHTML = `<div class="error">পরীক্ষা ব্যর্থ হয়েছে: ${error.message}</div>`;
+            if (isValid) {
+                testResult.innerHTML = '<div class="success">টোকেন সঠিক এবং কার্যকরী!</div>';
+            } else {
+                testResult.innerHTML = '<div class="error">টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে!</div>';
             }
         });
 
@@ -1186,13 +1186,36 @@ function showAdminPanel() {
     sessionStorage.setItem('isAdminLoggedIn', 'true');
     renderOrdersTable();
 
-    // Check if GitHub token exists, if not show setup modal
+    // Check if GitHub token exists and is valid
     const githubToken = localStorage.getItem('githubToken');
-    if (!githubToken) {
+    if (githubToken) {
+        validateGithubToken(githubToken).then(isValid => {
+            if (!isValid) {
+                showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'warning');
+                // Remove invalid token
+                localStorage.removeItem('githubToken');
+            }
+        });
+    } else {
         setTimeout(() => {
             showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'info');
             showGithubTokenModal();
         }, 1000);
+    }
+}
+
+// Validate GitHub token
+async function validateGithubToken(token) {
+    try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}`, {
+            headers: {
+                'Authorization': `token ${token}`
+            }
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error validating token:', error);
+        return false;
     }
 }
 
@@ -1242,6 +1265,8 @@ async function previewImage(input) {
         preview.style.display = 'block';
     }
 }
+
+
 
 // Preview video
 async function previewVideo(input) {
@@ -1583,6 +1608,14 @@ productForm.addEventListener('submit', async (e) => {
     const githubToken = localStorage.getItem('githubToken');
     if (!githubToken) {
         showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'warning');
+        showGithubTokenModal();
+        return;
+    }
+
+    // Validate token before proceeding
+    const isTokenValid = await validateGithubToken(githubToken);
+    if (!isTokenValid) {
+        showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
         showGithubTokenModal();
         return;
     }
