@@ -101,12 +101,38 @@ const orderDetailContainer = document.getElementById('orderDetailContainer');
 const submitProductBtn = document.getElementById('submitProductBtn');
 const productIdInput = document.getElementById('productId');
 
-
 // GitHub API configuration
 const GITHUB_USERNAME = 'mohib357';
 const GITHUB_REPO = 'mamstar';
 const GITHUB_BRANCH = 'main';
 const PRODUCTS_FILE_PATH = 'data/products.json';
+
+// Load products from JSON file
+async function loadProducts() {
+    try {
+        // First try to load from GitHub
+        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${GITHUB_BRANCH}/${PRODUCTS_FILE_PATH}`);
+
+        if (response.ok) {
+            products = await response.json();
+            // Also save to localStorage as a backup
+            localStorage.setItem('mamstarProducts', JSON.stringify(products));
+        } else {
+            // If GitHub fails, try to load from localStorage
+            const savedProducts = localStorage.getItem('mamstarProducts');
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+        // If fetch fails, try to load from localStorage
+        const savedProducts = localStorage.getItem('mamstarProducts');
+        if (savedProducts) {
+            products = JSON.parse(savedProducts);
+        }
+    }
+}
 
 // Save products to JSON file via GitHub API
 async function saveProducts() {
@@ -306,23 +332,6 @@ function showGithubTokenModal() {
     }
 }
 
-// Admin panel
-function showAdminPanel() {
-    adminPanel.classList.add('active');
-    adminLoginModal.style.display = 'none';
-    sessionStorage.setItem('isAdminLoggedIn', 'true');
-    renderOrdersTable();
-
-    // Check if GitHub token exists, if not show setup modal
-    const githubToken = localStorage.getItem('githubToken');
-    if (!githubToken) {
-        setTimeout(() => {
-            showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'info');
-            showGithubTokenModal();
-        }, 1000);
-    }
-}
-
 // Add CSS for token test results
 const tokenTestStyle = document.createElement('style');
 tokenTestStyle.textContent = `
@@ -370,114 +379,6 @@ tokenTestStyle.textContent = `
     }
 `;
 document.head.appendChild(tokenTestStyle);
-
-// Product form submit
-productForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Check if GitHub token exists
-    const githubToken = localStorage.getItem('githubToken');
-    if (!githubToken) {
-        showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'warning');
-        showGithubTokenModal();
-        return;
-    }
-
-    // Process image uploads
-    const imageItems = imageUploads.querySelectorAll('.media-item');
-    const images = [];
-
-    for (const item of imageItems) {
-        const fileInput = item.querySelector('input[type="file"]');
-        const urlInput = item.querySelector('input[type="text"]');
-        const preview = item.querySelector('.media-preview');
-
-        if (preview && preview.src) {
-            if (preview.dataset.type === 'url') {
-                // URL image
-                images.push(preview.dataset.value || preview.src);
-            } else {
-                // File upload
-                const imageData = await processImageUpload(fileInput);
-                if (imageData) {
-                    images.push(imageData);
-                }
-            }
-        }
-    }
-
-    // Process video uploads
-    const videoItems = videoUploads.querySelectorAll('.media-item');
-    const videos = [];
-
-    for (const item of videoItems) {
-        const fileInput = item.querySelector('input[type="file"]');
-        const urlInput = item.querySelector('input[type="text"]');
-        const preview = item.querySelector('.media-preview');
-
-        if (preview && preview.src) {
-            if (preview.dataset.type === 'url') {
-                // URL video
-                videos.push(preview.dataset.value || preview.src);
-            } else {
-                // File upload
-                const videoData = await processVideoUpload(fileInput);
-                if (videoData) {
-                    videos.push(videoData);
-                }
-            }
-        }
-    }
-
-    // If no images were uploaded, use a default
-    if (images.length === 0) {
-        images.push('https://via.placeholder.com/500x500?text=No+Image');
-    }
-
-    const productId = document.getElementById('productId').value;
-
-    if (productId) {
-        // Update existing product
-        const product = products.find(p => p.id === parseInt(productId));
-        if (product) {
-            product.name = document.getElementById('productName').value;
-            product.category = document.getElementById('productCategory').value;
-            product.price = parseInt(document.getElementById('productPrice').value);
-            product.oldPrice = parseInt(document.getElementById('productOldPrice').value) || 0;
-            product.discount = parseInt(document.getElementById('productDiscount').value) || 0;
-            product.stock = parseInt(document.getElementById('productStock').value);
-            product.images = images;
-            product.videos = videos;
-            product.description = document.getElementById('productDescription').value;
-
-            showNotification('পণ্যটি আপডেট করা হয়েছে!');
-        }
-    } else {
-        // Add new product
-        const newProduct = {
-            id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
-            name: document.getElementById('productName').value,
-            category: document.getElementById('productCategory').value,
-            price: parseInt(document.getElementById('productPrice').value),
-            oldPrice: parseInt(document.getElementById('productOldPrice').value) || 0,
-            discount: parseInt(document.getElementById('productDiscount').value) || 0,
-            stock: parseInt(document.getElementById('productStock').value),
-            images: images,
-            videos: videos,
-            description: document.getElementById('productDescription').value
-        };
-
-        products.push(newProduct);
-        showNotification('পণ্য সফলভাবে যোগ করা হয়েছে!');
-    }
-
-    renderProducts();
-    await saveProducts(); // Save to JSON file
-    productForm.reset();
-    document.getElementById('productId').value = '';
-    document.getElementById('submitProductBtn').textContent = 'পণ্য যোগ করুন';
-});
-
 
 // Check if admin is logged in
 function checkAdminLogin() {
@@ -1284,6 +1185,15 @@ function showAdminPanel() {
     adminLoginModal.style.display = 'none';
     sessionStorage.setItem('isAdminLoggedIn', 'true');
     renderOrdersTable();
+
+    // Check if GitHub token exists, if not show setup modal
+    const githubToken = localStorage.getItem('githubToken');
+    if (!githubToken) {
+        setTimeout(() => {
+            showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'info');
+            showGithubTokenModal();
+        }, 1000);
+    }
 }
 
 // Admin logout
@@ -1568,75 +1478,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Setup GitHub token input
-function setupGithubTokenInput() {
-    // Check if token already exists
-    const existingToken = localStorage.getItem('githubToken');
-
-    // Create token input modal if it doesn't exist
-    if (!document.getElementById('githubTokenModal')) {
-        const tokenModal = document.createElement('div');
-        tokenModal.id = 'githubTokenModal';
-        tokenModal.className = 'modal';
-        tokenModal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>GitHub টোকেন সেটআপ</h2>
-                    <span class="close" id="closeGithubTokenModal">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <p>পণ্য সংরক্ষণ করার জন্য আপনার GitHub টোকেন প্রয়োজন।</p>
-                    <p>টোকেন তৈরি করতে:</p>
-                    <ol>
-                        <li>আপনার GitHub অ্যাকাউন্টে লগ ইন করুন</li>
-                        <li>Settings > Developer settings > Personal access tokens এ যান</li>
-                        <li>Generate new token ক্লিক করুন</li>
-                        <li>Token এর নাম দিন এবং repo স্কোপ সিলেক্ট করুন</li>
-                        <li>Generate token ক্লিক করুন</li>
-                        <li>টোকেন কপি করে নিচের বক্সে পেস্ট করুন</li>
-                    </ol>
-                    <div class="form-group">
-                        <label for="githubTokenInput">GitHub টোকেন:</label>
-                        <input type="password" id="githubTokenInput" class="form-control" placeholder="আপনার GitHub টোকেন লিখুন">
-                    </div>
-                    <div class="form-group">
-                        <button id="saveGithubToken" class="btn-primary">টোকেন সংরক্ষণ করুন</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(tokenModal);
-
-        // Add event listeners
-        document.getElementById('closeGithubTokenModal').addEventListener('click', () => {
-            tokenModal.style.display = 'none';
-        });
-
-        document.getElementById('saveGithubToken').addEventListener('click', () => {
-            const token = document.getElementById('githubTokenInput').value;
-            if (token) {
-                localStorage.setItem('githubToken', token);
-                showNotification('GitHub টোকেন সফলভাবে সংরক্ষিত হয়েছে!');
-                tokenModal.style.display = 'none';
-            } else {
-                showNotification('টোকেন প্রদান করুন!', 'error');
-            }
-        });
-
-        // Close modal when clicking outside
-        window.addEventListener('click', (e) => {
-            if (e.target === tokenModal) {
-                tokenModal.style.display = 'none';
-            }
-        });
-    }
-
-    // Show token modal if no token exists
-    if (!existingToken) {
-        document.getElementById('githubTokenModal').style.display = 'block';
-    }
-}
-
 // Event Listeners
 adminIcon.addEventListener('click', () => {
     if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
@@ -1649,8 +1490,6 @@ adminIcon.addEventListener('click', () => {
 adminLoginBtn.addEventListener('click', () => {
     if (adminPassword.value === 'mamstar123') {
         showAdminPanel();
-        // Setup GitHub token when admin logs in
-        setupGithubTokenInput();
     } else {
         showNotification('ভুল পাসওয়ার্ড!', 'error');
     }
@@ -1743,7 +1582,8 @@ productForm.addEventListener('submit', async (e) => {
     // Check if GitHub token exists
     const githubToken = localStorage.getItem('githubToken');
     if (!githubToken) {
-        setupGithubTokenInput();
+        showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'warning');
+        showGithubTokenModal();
         return;
     }
 
