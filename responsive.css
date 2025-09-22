@@ -1,0 +1,105 @@
+/* C:\Project\mamstar\responsive.css - RESPONSIVE DESIGN */
+
+/* ===== TABLET & MOBILE STYLES ===== */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero h2 {
+        font-size: 2rem;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .product-detail-container {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .order-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-panel {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .modal-content {
+        margin: 10% auto;
+        padding: 15px;
+    }
+
+    .product-gallery {
+        order: 1;
+    }
+
+    .product-info-detail {
+        order: 2;
+    }
+}
+
+/* ===== MOBILE SMALL SCREENS ===== */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .hero {
+        padding: 60px 20px;
+    }
+
+    .hero h2 {
+        font-size: 1.8rem;
+    }
+
+    .section-title h2 {
+        font-size: 2rem;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .admin-tabs {
+        flex-direction: column;
+    }
+
+    .admin-tab {
+        text-align: center;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+
+    .quantity-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
