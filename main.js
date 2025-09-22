@@ -101,14 +101,24 @@ const orderDetailContainer = document.getElementById('orderDetailContainer');
 const submitProductBtn = document.getElementById('submitProductBtn');
 const productIdInput = document.getElementById('productId');
 
+// GitHub API configuration
+const GITHUB_USERNAME = 'mohib357';
+const GITHUB_REPO = 'mamstar';
+const GITHUB_BRANCH = 'main';
+const PRODUCTS_FILE_PATH = 'data/products.json';
+
 // Load products from JSON file
 async function loadProducts() {
     try {
-        const response = await fetch('/api/products');
+        // First try to load from GitHub
+        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${GITHUB_BRANCH}/${PRODUCTS_FILE_PATH}`);
+
         if (response.ok) {
             products = await response.json();
+            // Also save to localStorage as a backup
+            localStorage.setItem('mamstarProducts', JSON.stringify(products));
         } else {
-            // If server fails, try to load from localStorage as fallback
+            // If GitHub fails, try to load from localStorage
             const savedProducts = localStorage.getItem('mamstarProducts');
             if (savedProducts) {
                 products = JSON.parse(savedProducts);
@@ -116,7 +126,7 @@ async function loadProducts() {
         }
     } catch (error) {
         console.error('Error loading products:', error);
-        // If fetch fails, try to load from localStorage as fallback
+        // If fetch fails, try to load from localStorage
         const savedProducts = localStorage.getItem('mamstarProducts');
         if (savedProducts) {
             products = JSON.parse(savedProducts);
@@ -124,28 +134,57 @@ async function loadProducts() {
     }
 }
 
-// Save products to JSON file via API
+// Save products to JSON file via GitHub API
 async function saveProducts() {
     try {
-        const response = await fetch('/api/products', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(products)
-        });
+        // First save to localStorage as a backup
+        localStorage.setItem('mamstarProducts', JSON.stringify(products));
 
-        if (!response.ok) {
-            throw new Error('Failed to save products to server');
+        // Try to save to GitHub
+        const githubToken = localStorage.getItem('githubToken');
+
+        if (!githubToken) {
+            showNotification('GitHub টোকেন পাওয়া যায়নি, শুধুমাত্র লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+            return;
         }
 
-        // Also save to localStorage as a backup
-        localStorage.setItem('mamstarProducts', JSON.stringify(products));
+        // Get the current file SHA
+        const getFileResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
+            headers: {
+                'Authorization': `token ${githubToken}`
+            }
+        });
+
+        let sha = '';
+        if (getFileResponse.ok) {
+            const fileData = await getFileResponse.json();
+            sha = fileData.sha;
+        }
+
+        // Update the file
+        const content = btoa(JSON.stringify(products, null, 2));
+        const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Update products data',
+                content: content,
+                sha: sha,
+                branch: GITHUB_BRANCH
+            })
+        });
+
+        if (updateResponse.ok) {
+            showNotification('পণ্য সফলভাবে সংরক্ষিত হয়েছে!');
+        } else {
+            throw new Error('Failed to update file on GitHub');
+        }
     } catch (error) {
         console.error('Error saving products:', error);
-        // If server save fails, save to localStorage only
-        localStorage.setItem('mamstarProducts', JSON.stringify(products));
-        showNotification('সার্ভারে সংরক্ষণ করা যায়নি, লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+        showNotification('GitHub এ সংরক্ষণ করা যায়নি, শুধুমাত্র লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
     }
 }
 
@@ -1238,6 +1277,75 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+// Setup GitHub token input
+function setupGithubTokenInput() {
+    // Check if token already exists
+    const existingToken = localStorage.getItem('githubToken');
+
+    // Create token input modal if it doesn't exist
+    if (!document.getElementById('githubTokenModal')) {
+        const tokenModal = document.createElement('div');
+        tokenModal.id = 'githubTokenModal';
+        tokenModal.className = 'modal';
+        tokenModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>GitHub টোকেন সেটআপ</h2>
+                    <span class="close" id="closeGithubTokenModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>পণ্য সংরক্ষণ করার জন্য আপনার GitHub টোকেন প্রয়োজন।</p>
+                    <p>টোকেন তৈরি করতে:</p>
+                    <ol>
+                        <li>আপনার GitHub অ্যাকাউন্টে লগ ইন করুন</li>
+                        <li>Settings > Developer settings > Personal access tokens এ যান</li>
+                        <li>Generate new token ক্লিক করুন</li>
+                        <li>Token এর নাম দিন এবং repo স্কোপ সিলেক্ট করুন</li>
+                        <li>Generate token ক্লিক করুন</li>
+                        <li>টোকেন কপি করে নিচের বক্সে পেস্ট করুন</li>
+                    </ol>
+                    <div class="form-group">
+                        <label for="githubTokenInput">GitHub টোকেন:</label>
+                        <input type="password" id="githubTokenInput" class="form-control" placeholder="আপনার GitHub টোকেন লিখুন">
+                    </div>
+                    <div class="form-group">
+                        <button id="saveGithubToken" class="btn-primary">টোকেন সংরক্ষণ করুন</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(tokenModal);
+
+        // Add event listeners
+        document.getElementById('closeGithubTokenModal').addEventListener('click', () => {
+            tokenModal.style.display = 'none';
+        });
+
+        document.getElementById('saveGithubToken').addEventListener('click', () => {
+            const token = document.getElementById('githubTokenInput').value;
+            if (token) {
+                localStorage.setItem('githubToken', token);
+                showNotification('GitHub টোকেন সফলভাবে সংরক্ষিত হয়েছে!');
+                tokenModal.style.display = 'none';
+            } else {
+                showNotification('টোকেন প্রদান করুন!', 'error');
+            }
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === tokenModal) {
+                tokenModal.style.display = 'none';
+            }
+        });
+    }
+
+    // Show token modal if no token exists
+    if (!existingToken) {
+        document.getElementById('githubTokenModal').style.display = 'block';
+    }
+}
+
 // Event Listeners
 adminIcon.addEventListener('click', () => {
     if (sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
@@ -1250,6 +1358,8 @@ adminIcon.addEventListener('click', () => {
 adminLoginBtn.addEventListener('click', () => {
     if (adminPassword.value === 'mamstar123') {
         showAdminPanel();
+        // Setup GitHub token when admin logs in
+        setupGithubTokenInput();
     } else {
         showNotification('ভুল পাসওয়ার্ড!', 'error');
     }
@@ -1338,6 +1448,13 @@ document.querySelectorAll('.remove-media').forEach(btn => {
 // Product form submit
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Check if GitHub token exists
+    const githubToken = localStorage.getItem('githubToken');
+    if (!githubToken) {
+        setupGithubTokenInput();
+        return;
+    }
 
     // Process image uploads
     const imageItems = imageUploads.querySelectorAll('.media-item');
@@ -1575,6 +1692,21 @@ style.textContent = `
         cursor: none;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         pointer-events: none;
+    }
+    
+    /* GitHub token modal styling */
+    #githubTokenModal .modal-content {
+        max-width: 600px;
+        margin: 50px auto;
+    }
+    
+    #githubTokenModal ol {
+        padding-left: 20px;
+        margin: 15px 0;
+    }
+    
+    #githubTokenModal li {
+        margin-bottom: 8px;
     }
 `;
 document.head.appendChild(style);
