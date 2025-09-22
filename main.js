@@ -1,5 +1,17 @@
 // C:\Project\mamstar\main.js
 
+// Check if a URL is a YouTube URL
+function isYouTubeUrl(url) {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/;
+    return youtubeRegex.test(url);
+}
+
+// Get YouTube embed URL from a YouTube URL
+function getYouTubeEmbedUrl(url) {
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)[1];
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`;
+}
+
 // Sample initial products
 let products = [
     {
@@ -16,7 +28,7 @@ let products = [
             "https://images.unsplash.com/photo-1572635196237-14b3f281503f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
         ],
         videos: [
-            "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+            "https://www.youtube.com/watch?v=jNQXAC9IVRw" // YouTube URL example
         ],
         description: "আধুনিক ডিজাইনের UV প্রোটেক্টেড চশমা, যা আপনার চোখকে সূর্যের ক্ষতিকারক রশ্মি থেকে রক্ষা করবে। এটি হালকা ওজনের এবং দীর্ঘক্ষণ পরতে স্বাচ্ছন্দ্যবোধ করায়।"
     },
@@ -149,16 +161,6 @@ async function validateGithubToken(token) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 // Modified saveProducts function with error handling
 async function saveProducts() {
     try {
@@ -184,28 +186,93 @@ async function saveProducts() {
             }
         }
 
-        // Rest of the function remains the same for GitHub saving
+        // Try to save to GitHub
         const githubToken = localStorage.getItem('githubToken');
-        // ... existing GitHub saving code ...
+
+        if (!githubToken) {
+            showNotification('GitHub টোকেন পাওয়া যায়নি, শুধুমাত্র লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+            showGithubTokenModal();
+            return;
+        }
+
+        // Validate token before proceeding
+        const isTokenValid = await validateGithubToken(githubToken);
+        if (!isTokenValid) {
+            showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+            localStorage.removeItem('githubToken');
+            showGithubTokenModal();
+            return;
+        }
+
+        // Get the current file SHA
+        const getFileResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
+            headers: {
+                'Authorization': `token ${githubToken}`
+            }
+        });
+
+        let sha = '';
+        if (getFileResponse.ok) {
+            const fileData = await getFileResponse.json();
+            sha = fileData.sha;
+        } else if (getFileResponse.status === 404) {
+            // File doesn't exist yet, which is fine for the first time
+            console.log('File does not exist yet, will create a new one');
+        } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
+            // Token is invalid or doesn't have permissions
+            showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+            localStorage.removeItem('githubToken');
+            showGithubTokenModal();
+            return;
+        } else {
+            // Other error
+            const errorData = await getFileResponse.json();
+            console.error('Error getting file:', errorData);
+            throw new Error(`Failed to get file: ${errorData.message}`);
+        }
+
+        // Update the file - Fix for Unicode characters
+        const jsonString = JSON.stringify(products, null, 2);
+        const content = btoa(unescape(encodeURIComponent(jsonString)));
+
+        const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${PRODUCTS_FILE_PATH}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Update products data',
+                content: content,
+                sha: sha,
+                branch: GITHUB_BRANCH
+            })
+        });
+
+        if (updateResponse.ok) {
+            showNotification('পণ্য সফলভাবে সংরক্ষিত হয়েছে!');
+        } else {
+            const errorData = await updateResponse.json();
+            console.error('Error updating file:', errorData);
+
+            // Check for specific errors
+            if (updateResponse.status === 401 || updateResponse.status === 403) {
+                showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+                localStorage.removeItem('githubToken');
+                showGithubTokenModal();
+            } else if (updateResponse.status === 404) {
+                showNotification('GitHub রিপোজিটরি বা ফাইল পাওয়া যায়নি', 'error');
+            } else {
+                showNotification(`GitHub এ সংরক্ষণ করা যায়নি: ${errorData.message || 'Unknown error'}`, 'error');
+            }
+
+            throw new Error(`Failed to update file on GitHub: ${errorData.message}`);
+        }
     } catch (error) {
         console.error('Error saving products:', error);
         showNotification(`GitHub এ সংরক্ষণ করা যায়নি: ${error.message}`, 'error');
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Show GitHub token modal
 function showGithubTokenModal() {
@@ -449,12 +516,24 @@ function showProductDetail(productId) {
         if (item.type === 'image') {
             return `<img src="${item.src}" alt="${product.name}" class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMedia(${index})">`;
         } else {
-            return `<div class="thumbnail video-thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMedia(${index})">
-                        <i class="fas fa-play-circle"></i>
-                        <div class="video-thumbnail-overlay">
-                            <img src="https://picsum.photos/seed/video${index}/80/80.jpg" alt="Video thumbnail">
-                        </div>
-                    </div>`;
+            // Check if it's a YouTube URL
+            if (isYouTubeUrl(item.src)) {
+                const videoId = item.src.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)[1];
+                const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+                return `<div class="thumbnail video-thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMedia(${index})">
+                            <i class="fab fa-youtube"></i>
+                            <div class="video-thumbnail-overlay">
+                                <img src="${thumbnailUrl}" alt="YouTube thumbnail">
+                            </div>
+                        </div>`;
+            } else {
+                return `<div class="thumbnail video-thumbnail ${index === 0 ? 'active' : ''}" onclick="changeMedia(${index})">
+                            <i class="fas fa-play-circle"></i>
+                            <div class="video-thumbnail-overlay">
+                                <img src="https://picsum.photos/seed/video${index}/80/80.jpg" alt="Video thumbnail">
+                            </div>
+                        </div>`;
+            }
         }
     }).join('');
 
@@ -466,7 +545,9 @@ function showProductDetail(productId) {
             <div class="main-image-container" id="mainImageContainer">
                 ${initialMedia.type === 'image' ?
             `<img src="${initialMedia.src}" alt="${product.name}" class="main-image" id="mainImage">` :
-            `<video src="${initialMedia.src}" class="main-video" id="mainVideo" controls autoplay></video>`
+            (isYouTubeUrl(initialMedia.src) ?
+                `<iframe src="${getYouTubeEmbedUrl(initialMedia.src)}" class="main-video" id="mainVideo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>` :
+                `<video src="${initialMedia.src}" class="main-video" id="mainVideo" controls autoplay></video>`)
         }
                 <div class="zoom-lens" id="zoomLens"></div>
             </div>
@@ -577,72 +658,100 @@ function changeMedia(index) {
             setupImageZoom();
         }, 100);
     } else {
-        // Show video
-        const mainVideo = document.createElement('video');
-        mainVideo.src = selectedMedia.src;
-        mainVideo.className = 'main-video';
-        mainVideo.id = 'mainVideo';
-        mainVideo.controls = true;
-        mainVideo.autoplay = true;
-        mainVideo.loop = true;
-        mainVideo.muted = false; // Sound is on by default
-        mainVideo.volume = 1.0; // Set volume to maximum
-        mainImageContainer.appendChild(mainVideo);
+        // Check if it's a YouTube URL
+        if (isYouTubeUrl(selectedMedia.src)) {
+            // Show YouTube video in iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = getYouTubeEmbedUrl(selectedMedia.src);
+            iframe.className = 'main-video';
+            iframe.id = 'mainVideo';
+            iframe.frameBorder = '0';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            mainImageContainer.appendChild(iframe);
 
-        // Add a visual indicator for sound
-        const soundIndicator = document.createElement('div');
-        soundIndicator.className = 'sound-indicator';
-        soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
-        soundIndicator.style.position = 'absolute';
-        soundIndicator.style.top = '10px';
-        soundIndicator.style.right = '10px';
-        soundIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
-        soundIndicator.style.color = 'white';
-        soundIndicator.style.padding = '8px';
-        soundIndicator.style.borderRadius = '50%';
-        soundIndicator.style.cursor = 'pointer';
-        soundIndicator.style.zIndex = '10';
-        soundIndicator.style.fontSize = '16px';
+            // Add a visual indicator for YouTube
+            const youtubeIndicator = document.createElement('div');
+            youtubeIndicator.className = 'youtube-indicator';
+            youtubeIndicator.innerHTML = '<i class="fab fa-youtube"></i>';
+            youtubeIndicator.style.position = 'absolute';
+            youtubeIndicator.style.top = '10px';
+            youtubeIndicator.style.left = '10px';
+            youtubeIndicator.style.background = 'rgba(255, 0, 0, 0.8)';
+            youtubeIndicator.style.color = 'white';
+            youtubeIndicator.style.padding = '8px';
+            youtubeIndicator.style.borderRadius = '50%';
+            youtubeIndicator.style.zIndex = '10';
+            youtubeIndicator.style.fontSize = '16px';
+            mainImageContainer.appendChild(youtubeIndicator);
+        } else {
+            // Show regular video
+            const mainVideo = document.createElement('video');
+            mainVideo.src = selectedMedia.src;
+            mainVideo.className = 'main-video';
+            mainVideo.id = 'mainVideo';
+            mainVideo.controls = true;
+            mainVideo.autoplay = true;
+            mainVideo.loop = true;
+            mainVideo.muted = false; // Sound is on by default
+            mainVideo.volume = 1.0; // Set volume to maximum
+            mainImageContainer.appendChild(mainVideo);
 
-        // Toggle sound on click
-        soundIndicator.addEventListener('click', function (e) {
-            e.stopPropagation(); // Prevent video click event
-            if (mainVideo.muted) {
-                mainVideo.muted = false;
-                mainVideo.volume = 1.0;
-                this.innerHTML = '<i class="fas fa-volume-up"></i>';
-                showNotification('সাউন্ড চালু করা হয়েছে', 'info');
-            } else {
-                mainVideo.muted = true;
-                this.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                showNotification('সাউন্ড বন্ধ করা হয়েছে', 'info');
-            }
-        });
+            // Add a visual indicator for sound
+            const soundIndicator = document.createElement('div');
+            soundIndicator.className = 'sound-indicator';
+            soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
+            soundIndicator.style.position = 'absolute';
+            soundIndicator.style.top = '10px';
+            soundIndicator.style.right = '10px';
+            soundIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
+            soundIndicator.style.color = 'white';
+            soundIndicator.style.padding = '8px';
+            soundIndicator.style.borderRadius = '50%';
+            soundIndicator.style.cursor = 'pointer';
+            soundIndicator.style.zIndex = '10';
+            soundIndicator.style.fontSize = '16px';
 
-        mainImageContainer.appendChild(soundIndicator);
-
-        // Handle autoplay restrictions
-        const playPromise = mainVideo.play();
-
-        if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                // Autoplay started
-            }).catch(error => {
-                // Autoplay was prevented
-                mainVideo.muted = true;
-                soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                showNotification('ব্রাউজার সাউন্ড বন্ধ করে দিয়েছে, ভিডিওতে ক্লিক করুন', 'warning');
-
-                // Add click event to unmute
-                mainVideo.addEventListener('click', function () {
-                    if (this.muted) {
-                        this.muted = false;
-                        this.volume = 1.0;
-                        soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
-                        showNotification('সাউন্ড চালু করা হয়েছে', 'info');
-                    }
-                });
+            // Toggle sound on click
+            soundIndicator.addEventListener('click', function (e) {
+                e.stopPropagation(); // Prevent video click event
+                if (mainVideo.muted) {
+                    mainVideo.muted = false;
+                    mainVideo.volume = 1.0;
+                    this.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    showNotification('সাউন্ড চালু করা হয়েছে', 'info');
+                } else {
+                    mainVideo.muted = true;
+                    this.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                    showNotification('সাউন্ড বন্ধ করা হয়েছে', 'info');
+                }
             });
+
+            mainImageContainer.appendChild(soundIndicator);
+
+            // Handle autoplay restrictions
+            const playPromise = mainVideo.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Autoplay started
+                }).catch(error => {
+                    // Autoplay was prevented
+                    mainVideo.muted = true;
+                    soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                    showNotification('ব্রাউজার সাউন্ড বন্ধ করে দিয়েছে, ভিডিওতে ক্লিক করুন', 'warning');
+
+                    // Add click event to unmute
+                    mainVideo.addEventListener('click', function () {
+                        if (this.muted) {
+                            this.muted = false;
+                            this.volume = 1.0;
+                            soundIndicator.innerHTML = '<i class="fas fa-volume-up"></i>';
+                            showNotification('সাউন্ড চালু করা হয়েছে', 'info');
+                        }
+                    });
+                });
+            }
         }
     }
 
@@ -1220,17 +1329,6 @@ function processImageUpload(input) {
     });
 }
 
-
-
-
-
-
-
-
-
-
-
-
 // Process video upload - Modified to handle URLs only
 function processVideoUpload(input) {
     return new Promise((resolve) => {
@@ -1243,16 +1341,6 @@ function processVideoUpload(input) {
         }
     });
 }
-
-
-
-
-
-
-
-
-
-
 
 // Preview image
 async function previewImage(input) {
@@ -1639,17 +1727,6 @@ productForm.addEventListener('submit', async (e) => {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
     // Process video uploads - MODIFIED TO ONLY STORE URLs
     const videoItems = videoUploads.querySelectorAll('.media-item');
     const videos = [];
@@ -1670,21 +1747,6 @@ productForm.addEventListener('submit', async (e) => {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // If no images were uploaded, use a default
     if (images.length === 0) {
@@ -1865,6 +1927,17 @@ style.textContent = `
         height: 350px;
         object-fit: cover;
         border-radius: 10px;
+    }
+    
+    /* YouTube specific styles */
+    .youtube-indicator {
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .youtube-indicator:hover {
+        transform: scale(1.1);
+        background: rgba(255, 0, 0, 1) !important;
     }
     
     /* Zoom lens styling */
