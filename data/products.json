@@ -1,23 +1,5 @@
 [
   {
-    "id": 1,
-    "name": "ক্লাসিক ব্ল্যাক চশমা",
-    "category": "চশমা",
-    "price": 850,
-    "oldPrice": 1200,
-    "discount": 29,
-    "stock": 15,
-    "images": [
-      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
-    ],
-    "videos": [
-      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
-    ],
-    "description": "আধুনিক ডিজাইনের UV প্রোটেক্টেড চশমা, যা আপনার চোখকে সূর্যের ক্ষতিকারক রশ্মি থেকে রক্ষা করবে। এটি হালকা ওজনের এবং দীর্ঘক্ষণ পরতে স্বাচ্ছন্দ্যবোধ করায়।"
-  },
-  {
     "id": 2,
     "name": "ইলেক্ট্রনিক ঘড়ি",
     "category": "ঘড়ি",
