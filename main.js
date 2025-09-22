@@ -101,38 +101,12 @@ const orderDetailContainer = document.getElementById('orderDetailContainer');
 const submitProductBtn = document.getElementById('submitProductBtn');
 const productIdInput = document.getElementById('productId');
 
+
 // GitHub API configuration
 const GITHUB_USERNAME = 'mohib357';
 const GITHUB_REPO = 'mamstar';
 const GITHUB_BRANCH = 'main';
 const PRODUCTS_FILE_PATH = 'data/products.json';
-
-// Load products from JSON file
-async function loadProducts() {
-    try {
-        // First try to load from GitHub
-        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${GITHUB_BRANCH}/${PRODUCTS_FILE_PATH}`);
-
-        if (response.ok) {
-            products = await response.json();
-            // Also save to localStorage as a backup
-            localStorage.setItem('mamstarProducts', JSON.stringify(products));
-        } else {
-            // If GitHub fails, try to load from localStorage
-            const savedProducts = localStorage.getItem('mamstarProducts');
-            if (savedProducts) {
-                products = JSON.parse(savedProducts);
-            }
-        }
-    } catch (error) {
-        console.error('Error loading products:', error);
-        // If fetch fails, try to load from localStorage
-        const savedProducts = localStorage.getItem('mamstarProducts');
-        if (savedProducts) {
-            products = JSON.parse(savedProducts);
-        }
-    }
-}
 
 // Save products to JSON file via GitHub API
 async function saveProducts() {
@@ -145,6 +119,7 @@ async function saveProducts() {
 
         if (!githubToken) {
             showNotification('GitHub টোকেন পাওয়া যায়নি, শুধুমাত্র লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+            showGithubTokenModal();
             return;
         }
 
@@ -159,6 +134,14 @@ async function saveProducts() {
         if (getFileResponse.ok) {
             const fileData = await getFileResponse.json();
             sha = fileData.sha;
+        } else if (getFileResponse.status === 404) {
+            // File doesn't exist yet, which is fine for the first time
+            console.log('File does not exist yet, will create a new one');
+        } else {
+            // Other error
+            const errorData = await getFileResponse.json();
+            console.error('Error getting file:', errorData);
+            throw new Error(`Failed to get file: ${errorData.message}`);
         }
 
         // Update the file
@@ -180,13 +163,321 @@ async function saveProducts() {
         if (updateResponse.ok) {
             showNotification('পণ্য সফলভাবে সংরক্ষিত হয়েছে!');
         } else {
-            throw new Error('Failed to update file on GitHub');
+            const errorData = await updateResponse.json();
+            console.error('Error updating file:', errorData);
+
+            // Check for specific errors
+            if (updateResponse.status === 401) {
+                showNotification('GitHub টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে', 'error');
+                showGithubTokenModal();
+            } else if (updateResponse.status === 403) {
+                if (errorData.message && errorData.message.includes('rate limit')) {
+                    showNotification('GitHub API রেট লিমিট অতিক্রম করা হয়েছে, পরে আবার চেষ্টা করুন', 'warning');
+                } else {
+                    showNotification('GitHub এ ফাইল আপডেট করার অনুমতি নেই', 'error');
+                }
+            } else if (updateResponse.status === 404) {
+                showNotification('GitHub রিপোজিটরি বা ফাইল পাওয়া যায়নি', 'error');
+            } else {
+                showNotification(`GitHub এ সংরক্ষণ করা যায়নি: ${errorData.message || 'Unknown error'}`, 'error');
+            }
+
+            throw new Error(`Failed to update file on GitHub: ${errorData.message}`);
         }
     } catch (error) {
         console.error('Error saving products:', error);
-        showNotification('GitHub এ সংরক্ষণ করা যায়নি, শুধুমাত্র লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'warning');
+        showNotification(`GitHub এ সংরক্ষণ করা যায়নি: ${error.message}`, 'error');
     }
 }
+
+// Show GitHub token modal
+function showGithubTokenModal() {
+    // Check if token modal already exists
+    let tokenModal = document.getElementById('githubTokenModal');
+
+    if (!tokenModal) {
+        // Create token modal if it doesn't exist
+        tokenModal = document.createElement('div');
+        tokenModal.id = 'githubTokenModal';
+        tokenModal.className = 'modal';
+        tokenModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>GitHub টোকেন সেটআপ</h2>
+                    <span class="close" id="closeGithubTokenModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p>পণ্য সংরক্ষণ করার জন্য আপনার GitHub টোকেন প্রয়োজন।</p>
+                    <p>টোকেন তৈরি করতে:</p>
+                    <ol>
+                        <li>আপনার GitHub অ্যাকাউন্টে লগ ইন করুন</li>
+                        <li>Settings > Developer settings > Personal access tokens > Tokens (classic) এ যান</li>
+                        <li>Generate new token (classic) ক্লিক করুন</li>
+                        <li>Token এর নাম দিন (যেমন: Mamstar Products)</li>
+                        <li>Expiration নির্বাচন করুন (যেমন: 90 days)</li>
+                        <li><strong>repo</strong> স্কোপ সিলেক্ট করুন (এটি অত্যন্ত গুরুত্বপূর্ণ)</li>
+                        <li>Generate token ক্লিক করুন</li>
+                        <li>টোকেন কপি করে নিচের বক্সে পেস্ট করুন</li>
+                    </ol>
+                    <div class="form-group">
+                        <label for="githubTokenInput">GitHub টোকেন:</label>
+                        <input type="password" id="githubTokenInput" class="form-control" placeholder="আপনার GitHub টোকেন লিখুন">
+                    </div>
+                    <div class="form-group">
+                        <button id="saveGithubToken" class="btn-primary">টোকেন সংরক্ষণ করুন</button>
+                        <button id="testGithubToken" class="btn-secondary">টোকেন পরীক্ষা করুন</button>
+                    </div>
+                    <div id="tokenTestResult" class="token-test-result"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(tokenModal);
+
+        // Add event listeners
+        document.getElementById('closeGithubTokenModal').addEventListener('click', () => {
+            tokenModal.style.display = 'none';
+        });
+
+        document.getElementById('saveGithubToken').addEventListener('click', () => {
+            const token = document.getElementById('githubTokenInput').value;
+            if (token) {
+                localStorage.setItem('githubToken', token);
+                showNotification('GitHub টোকেন সফলভাবে সংরক্ষিত হয়েছে!');
+                tokenModal.style.display = 'none';
+            } else {
+                showNotification('টোকেন প্রদান করুন!', 'error');
+            }
+        });
+
+        document.getElementById('testGithubToken').addEventListener('click', async () => {
+            const token = document.getElementById('githubTokenInput').value;
+            const testResult = document.getElementById('tokenTestResult');
+
+            if (!token) {
+                testResult.innerHTML = '<div class="error">টোকেন প্রদান করুন!</div>';
+                return;
+            }
+
+            testResult.innerHTML = '<div class="testing">টোকেন পরীক্ষা করা হচ্ছে...</div>';
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}`, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    testResult.innerHTML = '<div class="success">টোকেন সঠিক এবং কার্যকরী!</div>';
+                } else {
+                    const errorData = await response.json();
+                    let errorMessage = 'টোকেন অবৈধ!';
+
+                    if (response.status === 401) {
+                        errorMessage = 'টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ হয়েছে!';
+                    } else if (response.status === 403) {
+                        errorMessage = 'টোকেনের অধিকার অপর্যাপ্ত!';
+                    } else if (response.status === 404) {
+                        errorMessage = 'রিপোজিটরি পাওয়া যায়নি!';
+                    }
+
+                    testResult.innerHTML = `<div class="error">${errorMessage}</div>`;
+                }
+            } catch (error) {
+                testResult.innerHTML = `<div class="error">পরীক্ষা ব্যর্থ হয়েছে: ${error.message}</div>`;
+            }
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === tokenModal) {
+                tokenModal.style.display = 'none';
+            }
+        });
+    }
+
+    // Show token modal
+    tokenModal.style.display = 'block';
+
+    // Pre-fill token if it exists
+    const existingToken = localStorage.getItem('githubToken');
+    if (existingToken) {
+        document.getElementById('githubTokenInput').value = existingToken;
+    }
+}
+
+// Admin panel
+function showAdminPanel() {
+    adminPanel.classList.add('active');
+    adminLoginModal.style.display = 'none';
+    sessionStorage.setItem('isAdminLoggedIn', 'true');
+    renderOrdersTable();
+
+    // Check if GitHub token exists, if not show setup modal
+    const githubToken = localStorage.getItem('githubToken');
+    if (!githubToken) {
+        setTimeout(() => {
+            showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'info');
+            showGithubTokenModal();
+        }, 1000);
+    }
+}
+
+// Add CSS for token test results
+const tokenTestStyle = document.createElement('style');
+tokenTestStyle.textContent = `
+    .token-test-result {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    
+    .token-test-result .testing {
+        color: #2196F3;
+    }
+    
+    .token-test-result .success {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .token-test-result .error {
+        color: #F44336;
+        font-weight: bold;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover, .btn-secondary:hover {
+        opacity: 0.9;
+    }
+`;
+document.head.appendChild(tokenTestStyle);
+
+// Product form submit
+productForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Check if GitHub token exists
+    const githubToken = localStorage.getItem('githubToken');
+    if (!githubToken) {
+        showNotification('GitHub টোকেন সেটআপ করুন পণ্য সংরক্ষণের জন্য', 'warning');
+        showGithubTokenModal();
+        return;
+    }
+
+    // Process image uploads
+    const imageItems = imageUploads.querySelectorAll('.media-item');
+    const images = [];
+
+    for (const item of imageItems) {
+        const fileInput = item.querySelector('input[type="file"]');
+        const urlInput = item.querySelector('input[type="text"]');
+        const preview = item.querySelector('.media-preview');
+
+        if (preview && preview.src) {
+            if (preview.dataset.type === 'url') {
+                // URL image
+                images.push(preview.dataset.value || preview.src);
+            } else {
+                // File upload
+                const imageData = await processImageUpload(fileInput);
+                if (imageData) {
+                    images.push(imageData);
+                }
+            }
+        }
+    }
+
+    // Process video uploads
+    const videoItems = videoUploads.querySelectorAll('.media-item');
+    const videos = [];
+
+    for (const item of videoItems) {
+        const fileInput = item.querySelector('input[type="file"]');
+        const urlInput = item.querySelector('input[type="text"]');
+        const preview = item.querySelector('.media-preview');
+
+        if (preview && preview.src) {
+            if (preview.dataset.type === 'url') {
+                // URL video
+                videos.push(preview.dataset.value || preview.src);
+            } else {
+                // File upload
+                const videoData = await processVideoUpload(fileInput);
+                if (videoData) {
+                    videos.push(videoData);
+                }
+            }
+        }
+    }
+
+    // If no images were uploaded, use a default
+    if (images.length === 0) {
+        images.push('https://via.placeholder.com/500x500?text=No+Image');
+    }
+
+    const productId = document.getElementById('productId').value;
+
+    if (productId) {
+        // Update existing product
+        const product = products.find(p => p.id === parseInt(productId));
+        if (product) {
+            product.name = document.getElementById('productName').value;
+            product.category = document.getElementById('productCategory').value;
+            product.price = parseInt(document.getElementById('productPrice').value);
+            product.oldPrice = parseInt(document.getElementById('productOldPrice').value) || 0;
+            product.discount = parseInt(document.getElementById('productDiscount').value) || 0;
+            product.stock = parseInt(document.getElementById('productStock').value);
+            product.images = images;
+            product.videos = videos;
+            product.description = document.getElementById('productDescription').value;
+
+            showNotification('পণ্যটি আপডেট করা হয়েছে!');
+        }
+    } else {
+        // Add new product
+        const newProduct = {
+            id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+            name: document.getElementById('productName').value,
+            category: document.getElementById('productCategory').value,
+            price: parseInt(document.getElementById('productPrice').value),
+            oldPrice: parseInt(document.getElementById('productOldPrice').value) || 0,
+            discount: parseInt(document.getElementById('productDiscount').value) || 0,
+            stock: parseInt(document.getElementById('productStock').value),
+            images: images,
+            videos: videos,
+            description: document.getElementById('productDescription').value
+        };
+
+        products.push(newProduct);
+        showNotification('পণ্য সফলভাবে যোগ করা হয়েছে!');
+    }
+
+    renderProducts();
+    await saveProducts(); // Save to JSON file
+    productForm.reset();
+    document.getElementById('productId').value = '';
+    document.getElementById('submitProductBtn').textContent = 'পণ্য যোগ করুন';
+});
+
 
 // Check if admin is logged in
 function checkAdminLogin() {
