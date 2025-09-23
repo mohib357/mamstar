@@ -1,20 +1,5 @@
 [
   {
-    "id": 2,
-    "name": "ইলেক্ট্রনিক ঘড়ি",
-    "category": "ঘড়ি",
-    "price": 1500,
-    "oldPrice": 2000,
-    "discount": 25,
-    "stock": 8,
-    "images": [
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
-    ],
-    "videos": [],
-    "description": "ওয়াটার রেসিস্ট্যান্ট ডিজিটাল ঘড়ি, যা দৈনন্দিন ব্যবহারের জন্য আদর্শ। এতে রয়েছে ডেট, অ্যালার্ম এবং স্টপওয়াচ ফিচার।"
-  },
-  {
     "id": 3,
     "name": "নিগারিয়া বোরকা",
     "category": "বোরকা",
